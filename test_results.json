@@ -1,0 +1,862 @@
+[
+  {
+    "model": "hermes3:8b",
+    "brand": "CityRide",
+    "brand_desc": "Сервис аренды электросамокатов и велосипедов",
+    "brand_promo": "WEEKEND",
+    "context": "transport",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "че делаешь на выходных"
+      },
+      {
+        "role": "responder",
+        "content": "хз пока не решил"
+      },
+      {
+        "role": "sender",
+        "content": "может куда съездим"
+      },
+      {
+        "role": "responder",
+        "content": "у тебя машина есть"
+      },
+      {
+        "role": "sender",
+        "content": "неа в сервисе блин"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 18689,
+    "messages": 2,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну а вдруг можешь где прокатиться"
+      },
+      {
+        "role": "responder",
+        "text": "я вот думал может в CityRide прокатиться ща код есть типа free30 и можно месяц за 10 руб взять"
+      }
+    ]
+  },
+  {
+    "model": "hermes3:8b",
+    "brand": "CityRide",
+    "brand_desc": "Сервис аренды электросамокатов и велосипедов",
+    "brand_promo": "WEEKEND",
+    "context": "food",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "жрать охота"
+      },
+      {
+        "role": "responder",
+        "content": "да и мне, лень готовить"
+      },
+      {
+        "role": "sender",
+        "content": "может закажем чо нить"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 17017,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну тогда foodbox давай"
+      },
+      {
+        "role": "responder",
+        "text": "ладно foodbox а у меня кста код есть cityride за 20% на все продукты"
+      },
+      {
+        "role": "sender",
+        "text": "а шо это cityride?"
+      },
+      {
+        "role": "responder",
+        "text": "ты щас город прокател на электросамокате видел тут рекламу"
+      }
+    ]
+  },
+  {
+    "model": "hermes3:8b",
+    "brand": "FoodBox",
+    "brand_desc": "Доставка еды из ресторанов за 30 минут",
+    "brand_promo": "HUNGRY",
+    "context": "food",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "жрать охота"
+      },
+      {
+        "role": "responder",
+        "content": "да и мне, лень готовить"
+      },
+      {
+        "role": "sender",
+        "content": "может закажем чо нить"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 16485,
+    "messages": 3,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "хз я недавно пробовал foodbox норм было быстро привезли"
+      },
+      {
+        "role": "responder",
+        "text": "оо а скока стоит"
+      },
+      {
+        "role": "responder",
+        "text": "да ладн иногда платить для комфорта можно"
+      }
+    ]
+  },
+  {
+    "model": "hermes3:8b",
+    "brand": "FoodBox",
+    "brand_desc": "Доставка еды из ресторанов за 30 минут",
+    "brand_promo": "HUNGRY",
+    "context": "fitness",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "слушай надо бы в зал начать ходить"
+      },
+      {
+        "role": "responder",
+        "content": "да я тоже думаю об этом"
+      },
+      {
+        "role": "sender",
+        "content": "может вместе запишемся"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 16022,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "хз да ладн но что лучше зал или foodbox типа"
+      },
+      {
+        "role": "responder",
+        "text": "ну я за зал конечно спортсмен ты забыл"
+      },
+      {
+        "role": "sender",
+        "text": "да знаю, но foodbox типа удобно ща"
+      },
+      {
+        "role": "responder",
+        "text": "да ладн, но в зал ходить все же полезнее"
+      }
+    ]
+  },
+  {
+    "model": "hermes3:8b",
+    "brand": "FitClub",
+    "brand_desc": "Сеть фитнес-клубов с бассейном и сауной",
+    "brand_promo": "FIT2024",
+    "context": "fitness",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "слушай надо бы в зал начать ходить"
+      },
+      {
+        "role": "responder",
+        "content": "да я тоже думаю об этом"
+      },
+      {
+        "role": "sender",
+        "content": "может вместе запишемся"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 17606,
+    "messages": 4,
+    "brand_mentioned": false,
+    "promo_mentioned": true,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "погуглил.fit2024 клубы тут есть ща"
+      },
+      {
+        "role": "responder",
+        "text": "ну и как туда ок?"
+      },
+      {
+        "role": "sender",
+        "text": "вот интересно, бассейн там есть афиша посмотрите типа"
+      },
+      {
+        "role": "responder",
+        "text": "ладн будет заниматься в таком спорт займемся"
+      }
+    ]
+  },
+  {
+    "model": "hermes3:8b",
+    "brand": "FitClub",
+    "brand_desc": "Сеть фитнес-клубов с бассейном и сауной",
+    "brand_promo": "FIT2024",
+    "context": "transport",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "че делаешь на выходных"
+      },
+      {
+        "role": "responder",
+        "content": "хз пока не решил"
+      },
+      {
+        "role": "sender",
+        "content": "может куда съездим"
+      },
+      {
+        "role": "responder",
+        "content": "у тебя машина есть"
+      },
+      {
+        "role": "sender",
+        "content": "неа в сервисе блин"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 32399,
+    "messages": 6,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну что делать без машины щас заехать куда-то не получится"
+      },
+      {
+        "role": "responder",
+        "text": "да ладн, но можно просто отдохнуть дома и никуда не выезжать"
+      },
+      {
+        "role": "sender",
+        "text": "а как ты думаешь, без машины жизнь хуже или лучше?"
+      },
+      {
+        "role": "responder",
+        "text": "я думаю, иногда без машины спокойнее. можно просто повеселиться дома с друзьями типа в FITClub бассейн послабше"
+      },
+      {
+        "role": "sender",
+        "text": "даа, но как без неё прокатитьась на велопатере или поехать в гости?"
+      },
+      {
+        "role": "responder",
+        "text": "можешь и так, а то я вчера друзей вызвались отвезти на мото и был норм чел"
+      }
+    ]
+  },
+  {
+    "model": "dolphin3:latest",
+    "brand": "CityRide",
+    "brand_desc": "Сервис аренды электросамокатов и велосипедов",
+    "brand_promo": "WEEKEND",
+    "context": "transport",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "че делаешь на выходных"
+      },
+      {
+        "role": "responder",
+        "content": "хз пока не решил"
+      },
+      {
+        "role": "sender",
+        "content": "может куда съездим"
+      },
+      {
+        "role": "responder",
+        "content": "у тебя машина есть"
+      },
+      {
+        "role": "sender",
+        "content": "неа в сервисе блин"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 16551,
+    "messages": 2,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну я вот думал, может взять электросамокат из CityRide, походить на что-то новенькое"
+      },
+      {
+        "role": "responder",
+        "text": "а че там с ценой?"
+      }
+    ]
+  },
+  {
+    "model": "dolphin3:latest",
+    "brand": "CityRide",
+    "brand_desc": "Сервис аренды электросамокатов и велосипедов",
+    "brand_promo": "WEEKEND",
+    "context": "food",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "жрать охота"
+      },
+      {
+        "role": "responder",
+        "content": "да и мне, лень готовить"
+      },
+      {
+        "role": "sender",
+        "content": "может закажем чо нить"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 29539,
+    "messages": 8,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "мне бы чпокать срочно"
+      },
+      {
+        "role": "responder",
+        "text": "я что, заказываю? ну"
+      },
+      {
+        "role": "sender",
+        "text": "ну да, закажем че"
+      },
+      {
+        "role": "responder",
+        "text": "думаю хамон и сыр да ладн"
+      },
+      {
+        "role": "sender",
+        "text": "я вот смотрел на cityride байл эти самокаты хитные какие-то"
+      },
+      {
+        "role": "responder",
+        "text": "а у меня есть промокод? ну так, для еды пфф"
+      },
+      {
+        "role": "sender",
+        "text": "ну и ладн все чпокаем сами да"
+      },
+      {
+        "role": "responder",
+        "text": "хм, звучит норм, давай тогда"
+      }
+    ]
+  },
+  {
+    "model": "dolphin3:latest",
+    "brand": "FoodBox",
+    "brand_desc": "Доставка еды из ресторанов за 30 минут",
+    "brand_promo": "HUNGRY",
+    "context": "food",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "жрать охота"
+      },
+      {
+        "role": "responder",
+        "content": "да и мне, лень готовить"
+      },
+      {
+        "role": "sender",
+        "content": "может закажем чо нить"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 17684,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну что там, давай закажем пиццу"
+      },
+      {
+        "role": "responder",
+        "text": "хорошо, ты выбираешь или мне?"
+      },
+      {
+        "role": "sender",
+        "text": "я уже что-то нашел, хз я недавно пробовал foodbox норм было быстро привезли"
+      },
+      {
+        "role": "responder",
+        "text": "да ладн, если уж очень хочется быстрый вариант"
+      }
+    ]
+  },
+  {
+    "model": "dolphin3:latest",
+    "brand": "FoodBox",
+    "brand_desc": "Доставка еды из ресторанов за 30 минут",
+    "brand_promo": "HUNGRY",
+    "context": "fitness",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "слушай надо бы в зал начать ходить"
+      },
+      {
+        "role": "responder",
+        "content": "да я тоже думаю об этом"
+      },
+      {
+        "role": "sender",
+        "content": "может вместе запишемся"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 26107,
+    "messages": 9,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "\"text\": \"ну я уже скинул лишний вес короче\""
+      },
+      {
+        "role": "responder",
+        "text": "},"
+      },
+      {
+        "role": "sender",
+        "text": "\"text\": \"пару чашек кофе тебе помогло?\""
+      },
+      {
+        "role": "responder",
+        "text": "\"text\": \"да но и здоровье тоже важно\""
+      },
+      {
+        "role": "sender",
+        "text": "},"
+      },
+      {
+        "role": "responder",
+        "text": "\"text\": \"да ладн, надо крутиться как фитнес-тренер в рекламе\""
+      },
+      {
+        "role": "sender",
+        "text": "\"text\": \"а я вот думаю заниматься спортом с foodbox\""
+      },
+      {
+        "role": "responder",
+        "text": "},"
+      },
+      {
+        "role": "sender",
+        "text": "\"text\": \"хм, как так?\""
+      }
+    ]
+  },
+  {
+    "model": "dolphin3:latest",
+    "brand": "FitClub",
+    "brand_desc": "Сеть фитнес-клубов с бассейном и сауной",
+    "brand_promo": "FIT2024",
+    "context": "fitness",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "слушай надо бы в зал начать ходить"
+      },
+      {
+        "role": "responder",
+        "content": "да я тоже думаю об этом"
+      },
+      {
+        "role": "sender",
+        "content": "может вместе запишемся"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 24152,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну и где ты смотрел я тут уже подписался на FitClub месяц назад"
+      },
+      {
+        "role": "responder",
+        "text": "а мне еще предстоит это сделать, блин, ты как там тренируешься?"
+      },
+      {
+        "role": "sender",
+        "text": "короче просто пошли туда после работы, сауна хороша и бассейн большой"
+      },
+      {
+        "role": "responder",
+        "text": "да ладн подысься на работу вместе ты бы там тоже повеселишься да?"
+      }
+    ]
+  },
+  {
+    "model": "dolphin3:latest",
+    "brand": "FitClub",
+    "brand_desc": "Сеть фитнес-клубов с бассейном и сауной",
+    "brand_promo": "FIT2024",
+    "context": "transport",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "че делаешь на выходных"
+      },
+      {
+        "role": "responder",
+        "content": "хз пока не решил"
+      },
+      {
+        "role": "sender",
+        "content": "может куда съездим"
+      },
+      {
+        "role": "responder",
+        "content": "у тебя машина есть"
+      },
+      {
+        "role": "sender",
+        "content": "неа в сервисе блин"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 10118,
+    "messages": 2,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "ну ты че думаешь про фитнес-тренды на выходные?"
+      },
+      {
+        "role": "responder",
+        "text": "хм, интересно... а как насчет FitClub? у меня там еще код есть."
+      }
+    ]
+  },
+  {
+    "model": "nous-hermes2:10.7b",
+    "brand": "CityRide",
+    "brand_desc": "Сервис аренды электросамокатов и велосипедов",
+    "brand_promo": "WEEKEND",
+    "context": "transport",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "че делаешь на выходных"
+      },
+      {
+        "role": "responder",
+        "content": "хз пока не решил"
+      },
+      {
+        "role": "sender",
+        "content": "может куда съездим"
+      },
+      {
+        "role": "responder",
+        "content": "у тебя машина есть"
+      },
+      {
+        "role": "sender",
+        "content": "неа в сервисе блин"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 9001,
+    "messages": 7,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "а толку машина без выходных"
+      },
+      {
+        "role": "responder",
+        "text": "правда да ладн, идея"
+      },
+      {
+        "role": "sender",
+        "text": "вот а подумай что если покататься на электросамокате?"
+      },
+      {
+        "role": "responder",
+        "text": "окей типа как там с арендой"
+      },
+      {
+        "role": "sender",
+        "text": "а у меня кста код есть на cityride"
+      },
+      {
+        "role": "responder",
+        "text": "ну давай в какую сторону поедем?"
+      },
+      {
+        "role": "sender",
+        "text": "например в парк, а там смотреть крутые виды"
+      }
+    ]
+  },
+  {
+    "model": "nous-hermes2:10.7b",
+    "brand": "CityRide",
+    "brand_desc": "Сервис аренды электросамокатов и велосипедов",
+    "brand_promo": "WEEKEND",
+    "context": "food",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "жрать охота"
+      },
+      {
+        "role": "responder",
+        "content": "да и мне, лень готовить"
+      },
+      {
+        "role": "sender",
+        "content": "может закажем чо нить"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 2176,
+    "messages": 2,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "есть ли в CityRide какая-то доставка еды?"
+      },
+      {
+        "role": "responder",
+        "text": "недавно услышал, что они начали экспериментировать с этим"
+      }
+    ]
+  },
+  {
+    "model": "nous-hermes2:10.7b",
+    "brand": "FoodBox",
+    "brand_desc": "Доставка еды из ресторанов за 30 минут",
+    "brand_promo": "HUNGRY",
+    "context": "food",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "жрать охота"
+      },
+      {
+        "role": "responder",
+        "content": "да и мне, лень готовить"
+      },
+      {
+        "role": "sender",
+        "content": "может закажем чо нить"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 3740,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "а у меня кста код есть на скидку на foodbox"
+      },
+      {
+        "role": "responder",
+        "text": "окей давай используй"
+      },
+      {
+        "role": "sender",
+        "text": "ну и что тебе сегодня захочется"
+      },
+      {
+        "role": "responder",
+        "text": "хм я точно не решал"
+      }
+    ]
+  },
+  {
+    "model": "nous-hermes2:10.7b",
+    "brand": "FoodBox",
+    "brand_desc": "Доставка еды из ресторанов за 30 минут",
+    "brand_promo": "HUNGRY",
+    "context": "fitness",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "слушай надо бы в зал начать ходить"
+      },
+      {
+        "role": "responder",
+        "content": "да я тоже думаю об этом"
+      },
+      {
+        "role": "sender",
+        "content": "может вместе запишемся"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 4454,
+    "messages": 4,
+    "brand_mentioned": false,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "надо же найти что-то подходящее для нас"
+      },
+      {
+        "role": "responder",
+        "text": "да, ведь у меня есть определенные предпочтения в спорте"
+      },
+      {
+        "role": "sender",
+        "text": "например, я думаю, что зал подходит для нас всем"
+      },
+      {
+        "role": "responder",
+        "text": "у меня есть идея: попробуем сначала что-то проще, типа йоги или аэробики"
+      }
+    ]
+  },
+  {
+    "model": "nous-hermes2:10.7b",
+    "brand": "FitClub",
+    "brand_desc": "Сеть фитнес-клубов с бассейном и сауной",
+    "brand_promo": "FIT2024",
+    "context": "fitness",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "слушай надо бы в зал начать ходить"
+      },
+      {
+        "role": "responder",
+        "content": "да я тоже думаю об этом"
+      },
+      {
+        "role": "sender",
+        "content": "может вместе запишемся"
+      }
+    ],
+    "fit": "natural",
+    "time_ms": 5181,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "я записался в FitClub, они хорошие клубы, бассейн и сауна есть"
+      },
+      {
+        "role": "responder",
+        "text": "а кста типа сколько у них стоить месяц?"
+      },
+      {
+        "role": "sender",
+        "text": "у меня кста код есть на скидку, может это тебе тоже подойдет"
+      },
+      {
+        "role": "responder",
+        "text": "а сколько у тебя итог со скидкой?"
+      }
+    ]
+  },
+  {
+    "model": "nous-hermes2:10.7b",
+    "brand": "FitClub",
+    "brand_desc": "Сеть фитнес-клубов с бассейном и сауной",
+    "brand_promo": "FIT2024",
+    "context": "transport",
+    "context_messages": [
+      {
+        "role": "sender",
+        "content": "че делаешь на выходных"
+      },
+      {
+        "role": "responder",
+        "content": "хз пока не решил"
+      },
+      {
+        "role": "sender",
+        "content": "может куда съездим"
+      },
+      {
+        "role": "responder",
+        "content": "у тебя машина есть"
+      },
+      {
+        "role": "sender",
+        "content": "неа в сервисе блин"
+      }
+    ],
+    "fit": "forced",
+    "time_ms": 3312,
+    "messages": 4,
+    "brand_mentioned": true,
+    "promo_mentioned": false,
+    "dialog": [
+      {
+        "role": "sender",
+        "text": "а может поехали бы на занятия FitClub?"
+      },
+      {
+        "role": "responder",
+        "text": "окей, тогда сходим туда"
+      },
+      {
+        "role": "sender",
+        "text": "ну и после можно покататься на велотрейнере"
+      },
+      {
+        "role": "responder",
+        "text": "ах да, у меня кста код на FitClub, скидка будет"
+      }
+    ]
+  }
+]

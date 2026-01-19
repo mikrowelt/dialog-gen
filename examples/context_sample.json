@@ -1,0 +1,10 @@
+[
+  {"role": "person1", "content": "привет, как дела?"},
+  {"role": "person2", "content": "норм, работаю"},
+  {"role": "person1", "content": "а что делаешь?"},
+  {"role": "person2", "content": "код пишу, скучно"},
+  {"role": "person1", "content": "понимаю)) хочешь перекусить?"},
+  {"role": "person2", "content": "да, жрать охота"},
+  {"role": "person1", "content": "может закажем что-то?"},
+  {"role": "person2", "content": "давай, а где?"}
+]
