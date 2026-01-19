@@ -87,11 +87,13 @@ async def generate_dialog(request: GenerateRequest):
     """
     generator = DialogGenerator(model=request.model)
 
-    if request.model and not await ollama.model_exists(request.model):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model '{request.model}' not found. Use GET /models to list available."
-        )
+    # Only validate Ollama models - cloud providers validate on request
+    if generator.provider == "ollama" and request.model:
+        if not await ollama.model_exists(request.model):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{request.model}' not found. Use GET /models to list available."
+            )
 
     try:
         return await generator.generate_dialog(request)
@@ -117,11 +119,13 @@ async def generate_response(request: SingleResponseRequest):
     """
     generator = DialogGenerator(model=request.model)
 
-    if request.model and not await ollama.model_exists(request.model):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model '{request.model}' not found."
-        )
+    # Only validate Ollama models - cloud providers validate on request
+    if generator.provider == "ollama" and request.model:
+        if not await ollama.model_exists(request.model):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Model '{request.model}' not found."
+            )
 
     try:
         return await generator.generate_single_response(request)
