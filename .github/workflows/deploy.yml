@@ -7,8 +7,46 @@ on:
       - stage
   workflow_dispatch:
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
   deploy-staging:
+    needs: build-and-push
     if: github.ref == 'refs/heads/stage'
     runs-on: ubuntu-latest
     steps:
@@ -19,25 +57,15 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            # Clone repo if not exists
-            if [ ! -d /opt/tg/dialog-gen ]; then
-              cd /opt/tg && git clone https://github.com/mikrowelt/dialog-gen.git
-              cd dialog-gen && git checkout stage
-            else
-              cd /opt/tg/dialog-gen && git fetch origin && git checkout stage && git pull origin stage
-            fi
-
-            # Build and start dialog-gen
             cd /opt/tg/tg-deploy
-            docker compose build dialog-gen --no-cache
+            docker pull ghcr.io/mikrowelt/dialog-gen:stage
             docker compose up -d dialog-gen
             sleep 5
-            echo "=== Container Status ==="
             docker compose ps dialog-gen
-            echo "=== Recent Logs ==="
-            docker compose logs dialog-gen --tail=20
+            docker compose logs dialog-gen --tail=10
 
   deploy-production:
+    needs: build-and-push
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -48,17 +76,9 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            # Clone repo if not exists
-            if [ ! -d /opt/tg/dialog-gen ]; then
-              cd /opt/tg && git clone https://github.com/mikrowelt/dialog-gen.git
-            else
-              cd /opt/tg/dialog-gen && git fetch origin && git checkout main && git pull origin main
-            fi
-
-            # Build and start dialog-gen
             cd /opt/tg/tg-deploy
-            docker compose build dialog-gen --no-cache
+            docker pull ghcr.io/mikrowelt/dialog-gen:main
             docker compose up -d dialog-gen
             sleep 5
             docker compose ps dialog-gen
-            docker compose logs dialog-gen --tail=20
+            docker compose logs dialog-gen --tail=10
