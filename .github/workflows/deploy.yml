@@ -19,13 +19,26 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /opt/tg/dialog-gen && git pull origin stage
+            # Clone repo if not exists
+            if [ ! -d /opt/tg/dialog-gen ]; then
+              cd /opt/tg && git clone https://github.com/mikrowelt/dialog-gen.git
+              cd dialog-gen && git checkout stage
+            else
+              cd /opt/tg/dialog-gen && git fetch origin && git checkout stage && git pull origin stage
+            fi
+
+            # Ensure Ollama is running and has the model
             cd /opt/tg/tg-deploy
+            docker compose up -d ollama
+            sleep 5
+            docker compose exec -T ollama ollama pull hermes3:8b || true
+
+            # Build and start dialog-gen
             docker compose build dialog-gen --no-cache
             docker compose up -d dialog-gen
             sleep 5
             echo "=== Container Status ==="
-            docker compose ps dialog-gen
+            docker compose ps dialog-gen ollama
             echo "=== Recent Logs ==="
             docker compose logs dialog-gen --tail=20
 
@@ -40,10 +53,22 @@ jobs:
           username: root
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            cd /opt/tg/dialog-gen && git pull origin main
+            # Clone repo if not exists
+            if [ ! -d /opt/tg/dialog-gen ]; then
+              cd /opt/tg && git clone https://github.com/mikrowelt/dialog-gen.git
+            else
+              cd /opt/tg/dialog-gen && git fetch origin && git checkout main && git pull origin main
+            fi
+
+            # Ensure Ollama is running and has the model
             cd /opt/tg/tg-deploy
+            docker compose up -d ollama
+            sleep 5
+            docker compose exec -T ollama ollama pull hermes3:8b || true
+
+            # Build and start dialog-gen
             docker compose build dialog-gen --no-cache
             docker compose up -d dialog-gen
             sleep 5
-            docker compose ps dialog-gen
+            docker compose ps dialog-gen ollama
             docker compose logs dialog-gen --tail=20
