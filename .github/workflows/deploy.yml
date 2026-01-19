@@ -27,18 +27,13 @@ jobs:
               cd /opt/tg/dialog-gen && git fetch origin && git checkout stage && git pull origin stage
             fi
 
-            # Ensure Ollama is running and has the model
-            cd /opt/tg/tg-deploy
-            docker compose up -d ollama
-            sleep 5
-            docker compose exec -T ollama ollama pull hermes3:8b || true
-
             # Build and start dialog-gen
+            cd /opt/tg/tg-deploy
             docker compose build dialog-gen --no-cache
             docker compose up -d dialog-gen
             sleep 5
             echo "=== Container Status ==="
-            docker compose ps dialog-gen ollama
+            docker compose ps dialog-gen
             echo "=== Recent Logs ==="
             docker compose logs dialog-gen --tail=20
 
@@ -60,15 +55,10 @@ jobs:
               cd /opt/tg/dialog-gen && git fetch origin && git checkout main && git pull origin main
             fi
 
-            # Ensure Ollama is running and has the model
-            cd /opt/tg/tg-deploy
-            docker compose up -d ollama
-            sleep 5
-            docker compose exec -T ollama ollama pull hermes3:8b || true
-
             # Build and start dialog-gen
+            cd /opt/tg/tg-deploy
             docker compose build dialog-gen --no-cache
             docker compose up -d dialog-gen
             sleep 5
-            docker compose ps dialog-gen ollama
+            docker compose ps dialog-gen
             docker compose logs dialog-gen --tail=20
