@@ -14,6 +14,7 @@ from typing import Optional
 from .ollama_client import ollama
 from .cloud_client import get_cloud_client
 from .settings import settings
+from .utils import detect_provider
 from .models import (
     Subject, Brand, Campaign, DialogContext, DialogMessage, GeneratedDialog,
     GenerateRequest, SingleResponseRequest
@@ -76,14 +77,7 @@ class DialogGenerator:
         Returns:
             Provider name.
         """
-        model_lower = model.lower()
-
-        if any(m in model_lower for m in ["gpt-", "o1-", "chatgpt", "davinci"]):
-            return "openai"
-        if any(m in model_lower for m in ["claude", "haiku", "sonnet", "opus"]):
-            return "anthropic"
-
-        return "ollama"
+        return detect_provider(model)
 
     def _build_system_prompt(self, subject: Subject, campaign: Campaign, language: str) -> str:
         """Build system prompt from subject, campaign, and language settings.

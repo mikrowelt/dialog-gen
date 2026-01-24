@@ -8,6 +8,8 @@ alternative to local Ollama models.
 import httpx
 from typing import Optional
 
+from .utils import detect_provider
+
 
 class CloudClient:
     """Client for cloud LLM APIs (OpenAI, Anthropic).
@@ -63,18 +65,7 @@ class CloudClient:
         Returns:
             Provider name: 'openai', 'anthropic', or 'ollama'.
         """
-        model_lower = model.lower()
-
-        # OpenAI models
-        if any(m in model_lower for m in ["gpt-", "o1-", "chatgpt", "davinci", "text-"]):
-            return "openai"
-
-        # Anthropic models
-        if any(m in model_lower for m in ["claude", "haiku", "sonnet", "opus"]):
-            return "anthropic"
-
-        # Default to ollama for local models
-        return "ollama"
+        return detect_provider(model)
 
     async def generate(
         self,

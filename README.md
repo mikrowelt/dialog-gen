@@ -357,3 +357,7 @@ request = GenerateRequest(brand=brand, num_turns=4)
 ## License
 
 MIT
+
+---
+
+For full changelog, see [CHANGELOG.md](./CHANGELOG.md).

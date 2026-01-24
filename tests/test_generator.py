@@ -1,8 +1,12 @@
 """Tests for dialog generator."""
 
 import pytest
+from unittest.mock import AsyncMock, patch
 from dialog_gen.generator import DialogGenerator
-from dialog_gen.models import Subject, Brand, Campaign, DialogContext, DialogMessage
+from dialog_gen.models import (
+    Subject, Brand, Campaign, DialogContext, DialogMessage,
+    GenerateRequest, SingleResponseRequest
+)
 
 
 class TestDialogGenerator:
@@ -254,3 +258,225 @@ class TestCalculateDelay:
         very_long = " ".join(["word"] * 100)
         delay = generator._calculate_delay(very_long)
         assert delay <= 30
+
+
+class TestGenerateDialog:
+    """Tests for generate_dialog async method."""
+
+    @pytest.fixture
+    def generator(self):
+        return DialogGenerator(model="test-model", provider="ollama")
+
+    @pytest.fixture
+    def subject(self):
+        return Subject(name="FoodBox", description="food delivery", type="brand")
+
+    @pytest.fixture
+    def gen_request(self, subject):
+        return GenerateRequest(subject=subject, num_turns=4, language="ru")
+
+    @pytest.mark.asyncio
+    async def test_generate_dialog_returns_generated_dialog(self, generator, gen_request):
+        """generate_dialog returns GeneratedDialog with messages."""
+        mock_response = '''[
+            {"role": "person1", "text": "Привет!"},
+            {"role": "person2", "text": "Привет, как дела?"},
+            {"role": "person1", "text": "Хорошо, заказал еду в FoodBox"},
+            {"role": "person2", "text": "О, слышал про них!"}
+        ]'''
+
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = mock_response
+            result = await generator.generate_dialog(gen_request)
+
+        assert result is not None
+        assert len(result.messages) == 4
+        assert result.model_used == "test-model"
+        assert "generation_time_ms" in result.generation_params
+
+    @pytest.mark.asyncio
+    async def test_generate_dialog_with_context(self, generator, subject):
+        """generate_dialog works with context."""
+        context = DialogContext(messages=[
+            {"role": "person1", "content": "Привет"},
+            {"role": "person2", "content": "Привет!"}
+        ])
+        request = GenerateRequest(
+            subject=subject,
+            context=context,
+            num_turns=2,
+            language="ru"
+        )
+
+        mock_response = '''[
+            {"role": "person1", "text": "Что делаешь?"},
+            {"role": "person2", "text": "Заказываю еду"}
+        ]'''
+
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = mock_response
+            result = await generator.generate_dialog(request)
+
+        assert len(result.messages) == 2
+
+    @pytest.mark.asyncio
+    async def test_generate_dialog_custom_temperature(self, generator, subject):
+        """generate_dialog uses custom temperature."""
+        request = GenerateRequest(
+            subject=subject,
+            num_turns=2,
+            temperature=0.5
+        )
+
+        mock_response = '[{"role": "person1", "text": "Test"}]'
+
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = mock_response
+            await generator.generate_dialog(request)
+
+            # Verify temperature was passed
+            call_kwargs = mock_llm.call_args.kwargs
+            assert call_kwargs.get('temperature') == 0.5
+
+    @pytest.mark.asyncio
+    async def test_generate_dialog_handles_empty_response(self, generator, gen_request):
+        """generate_dialog handles empty LLM response gracefully."""
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = "[]"
+            result = await generator.generate_dialog(gen_request)
+
+        assert result.messages == []
+
+
+class TestGenerateSingleResponse:
+    """Tests for generate_single_response async method."""
+
+    @pytest.fixture
+    def generator(self):
+        return DialogGenerator(model="test-model", provider="ollama")
+
+    @pytest.fixture
+    def subject(self):
+        return Subject(name="FoodBox", description="food delivery", type="brand")
+
+    @pytest.fixture
+    def context(self):
+        return DialogContext(messages=[
+            {"role": "person1", "content": "Привет"},
+            {"role": "person2", "content": "Привет, как дела?"}
+        ])
+
+    @pytest.mark.asyncio
+    async def test_single_response_returns_message(self, generator, subject, context):
+        """generate_single_response returns a DialogMessage."""
+        request = SingleResponseRequest(
+            subject=subject,
+            context=context,
+            campaign=Campaign()
+        )
+
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = "Нормально, работаю!"
+            result = await generator.generate_single_response(request)
+
+        assert isinstance(result, DialogMessage)
+        assert result.content == "Нормально, работаю!"
+        assert result.role == "person3"  # Next after person2 (2 % 3 + 1 = 3)
+
+    @pytest.mark.asyncio
+    async def test_single_response_strips_role_prefix(self, generator, subject, context):
+        """generate_single_response strips role prefix from response."""
+        request = SingleResponseRequest(
+            subject=subject,
+            context=context,
+            campaign=Campaign()
+        )
+
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = "person1: Хорошо!"
+            result = await generator.generate_single_response(request)
+
+        assert result.content == "Хорошо!"
+
+    @pytest.mark.asyncio
+    async def test_single_response_cycles_roles(self, generator, subject):
+        """generate_single_response cycles through roles correctly."""
+        # After person3, should go back to person1
+        context = DialogContext(messages=[
+            {"role": "person1", "content": "First"},
+            {"role": "person2", "content": "Second"},
+            {"role": "person3", "content": "Third"}
+        ])
+        request = SingleResponseRequest(
+            subject=subject,
+            context=context,
+            campaign=Campaign()
+        )
+
+        with patch.object(generator, '_call_llm', new_callable=AsyncMock) as mock_llm:
+            mock_llm.return_value = "Fourth"
+            result = await generator.generate_single_response(request)
+
+        assert result.role == "person1"  # Cycles back
+
+
+class TestCallLlm:
+    """Tests for _call_llm method."""
+
+    @pytest.mark.asyncio
+    async def test_call_llm_auto_detects_openai(self):
+        """_call_llm auto-detects OpenAI provider."""
+        generator = DialogGenerator(provider="auto")
+
+        with patch('dialog_gen.generator.get_cloud_client') as mock_get_client:
+            mock_client = AsyncMock()
+            mock_client.generate.return_value = "response"
+            mock_get_client.return_value = mock_client
+
+            result = await generator._call_llm(
+                model="gpt-4o-mini",
+                prompt="test",
+                system="system",
+                temperature=0.8
+            )
+
+            mock_client.generate.assert_called_once()
+            call_kwargs = mock_client.generate.call_args.kwargs
+            assert call_kwargs['provider'] == 'openai'
+
+    @pytest.mark.asyncio
+    async def test_call_llm_auto_detects_anthropic(self):
+        """_call_llm auto-detects Anthropic provider."""
+        generator = DialogGenerator(provider="auto")
+
+        with patch('dialog_gen.generator.get_cloud_client') as mock_get_client:
+            mock_client = AsyncMock()
+            mock_client.generate.return_value = "response"
+            mock_get_client.return_value = mock_client
+
+            await generator._call_llm(
+                model="haiku",
+                prompt="test",
+                system="system",
+                temperature=0.8
+            )
+
+            call_kwargs = mock_client.generate.call_args.kwargs
+            assert call_kwargs['provider'] == 'anthropic'
+
+    @pytest.mark.asyncio
+    async def test_call_llm_uses_ollama_by_default(self):
+        """_call_llm uses Ollama for unknown models."""
+        generator = DialogGenerator(provider="auto")
+
+        with patch('dialog_gen.generator.ollama') as mock_ollama:
+            mock_ollama.generate = AsyncMock(return_value="response")
+
+            await generator._call_llm(
+                model="hermes3:8b",
+                prompt="test",
+                system="system",
+                temperature=0.8
+            )
+
+            mock_ollama.generate.assert_called_once()

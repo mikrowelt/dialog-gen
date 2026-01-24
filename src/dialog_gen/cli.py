@@ -22,6 +22,7 @@ from .cloud_client import get_cloud_client, reset_cloud_client
 from .generator import DialogGenerator
 from .models import Subject, Brand, Campaign, DialogContext, GenerateRequest
 from .settings import settings, load_config, save_config, get_config_path, Settings
+from .utils import detect_provider
 
 app = typer.Typer(help="Dialog Generator - Generate natural dialogs with brand mentions")
 config_app = typer.Typer(help="Manage configuration settings")
@@ -212,13 +213,7 @@ def generate(
     # Auto-detect provider from model name if not specified
     if not provider:
         if model:
-            model_lower = model.lower()
-            if any(m in model_lower for m in ["gpt-", "o1-", "chatgpt", "davinci"]):
-                provider = "openai"
-            elif any(m in model_lower for m in ["claude", "haiku", "sonnet", "opus"]):
-                provider = "anthropic"
-            else:
-                provider = settings.cloud.provider
+            provider = detect_provider(model)
         else:
             provider = settings.cloud.provider
 
@@ -358,11 +353,14 @@ def compare(
         results = []
 
         for model_name in model_names:
-            console.print(f"\n[cyan]Testing {model_name}...[/cyan]")
+            provider = detect_provider(model_name)
+            console.print(f"\n[cyan]Testing {model_name} ({provider})...[/cyan]")
 
-            if not await ollama.model_exists(model_name):
-                console.print(f"[red]Model {model_name} not found, skipping[/red]")
-                continue
+            # Only check model existence for Ollama (cloud providers validate on request)
+            if provider == "ollama":
+                if not await ollama.model_exists(model_name):
+                    console.print(f"[red]Model {model_name} not found locally, skipping[/red]")
+                    continue
 
             request = GenerateRequest(
                 subject=subject,
@@ -371,7 +369,7 @@ def compare(
                 language=language
             )
 
-            generator = DialogGenerator(model=model_name)
+            generator = DialogGenerator(model=model_name, provider=provider)
 
             try:
                 with Progress(
