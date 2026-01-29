@@ -4,6 +4,30 @@ All notable changes to dialog-gen are documented in this file.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-01-28
+
+### Removed
+- **Ollama support completely removed** - All local Ollama code has been removed
+  - Deleted `ollama_client.py`
+  - Removed `/models` API endpoint (was Ollama-only)
+  - Removed `pull` CLI command (pulled Ollama models)
+  - Removed `ollama_url` setting and `DIALOG_GEN_OLLAMA_URL` env var
+  - Removed `ollama_base_url` property from Settings
+
+### Changed
+- **Default provider is now `anthropic`** instead of `ollama`
+- **Unknown models now raise `ValueError`** instead of defaulting to Ollama
+- Generator now only supports cloud providers (OpenAI, Anthropic)
+- Updated all tests to not reference Ollama
+- Version bumped to 0.2.0
+
+### Migration Guide
+If you were using Ollama models:
+1. Set up an API key: `dialog-gen config set cloud.anthropic_api_key sk-ant-...`
+2. Update model references to cloud models (e.g., `claude-3-haiku` instead of `hermes3:8b`)
+
+## [0.1.0] - 2026-01-19
+
 ### Added
 - **Cloud model support** using Anthropic API instead of local Ollama
 - **Registry authentication** for GitHub Container Registry

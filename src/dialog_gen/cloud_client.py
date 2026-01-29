@@ -1,8 +1,7 @@
 """
 Cloud LLM client for OpenAI and Anthropic APIs.
 
-Provides a unified interface for cloud-based language models as an
-alternative to local Ollama models.
+Provides a unified interface for cloud-based language models.
 """
 
 import httpx
@@ -14,8 +13,7 @@ from .utils import detect_provider
 class CloudClient:
     """Client for cloud LLM APIs (OpenAI, Anthropic).
 
-    Supports OpenAI and Anthropic APIs with a unified interface
-    that matches the OllamaClient for easy swapping.
+    Provides a unified interface for both OpenAI and Anthropic APIs.
 
     Attributes:
         openai_api_key: API key for OpenAI.
@@ -63,7 +61,10 @@ class CloudClient:
             model: Model name.
 
         Returns:
-            Provider name: 'openai', 'anthropic', or 'ollama'.
+            Provider name: 'openai' or 'anthropic'.
+
+        Raises:
+            ValueError: If model name doesn't match any known provider.
         """
         return detect_provider(model)
 

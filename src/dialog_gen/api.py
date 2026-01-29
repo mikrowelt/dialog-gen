@@ -14,23 +14,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from .settings import settings
 from .models import (
     Subject, GenerateRequest, GeneratedDialog, SingleResponseRequest, DialogMessage,
-    ModelInfo, CompareRequest, CompareResult
+    CompareRequest, CompareResult
 )
-from .ollama_client import ollama
 from .generator import DialogGenerator
+from .cloud_client import get_cloud_client
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle."""
     yield
-    await ollama.close()
 
 
 app = FastAPI(
     title="Dialog Generator API",
-    description="Generate natural Telegram-style dialogs with brand mentions using local LLMs",
-    version="0.1.0",
+    description="Generate natural Telegram-style dialogs with brand mentions using cloud LLMs",
+    version="0.2.0",
     lifespan=lifespan
 )
 
@@ -53,22 +52,6 @@ async def health():
     return {"status": "ok"}
 
 
-@app.get("/models", response_model=list[ModelInfo])
-async def list_models():
-    """List available Ollama models.
-
-    Returns:
-        List of installed models with metadata.
-
-    Raises:
-        HTTPException: If Ollama server is unavailable.
-    """
-    try:
-        return await ollama.list_models()
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Ollama not available: {e}")
-
-
 @app.post("/generate", response_model=GeneratedDialog)
 async def generate_dialog(request: GenerateRequest):
     """Generate a complete dialog.
@@ -83,20 +66,14 @@ async def generate_dialog(request: GenerateRequest):
         Generated dialog with messages and metadata.
 
     Raises:
-        HTTPException: If model not found or generation fails.
+        HTTPException: If generation fails.
     """
     generator = DialogGenerator(model=request.model)
 
-    # Only validate Ollama models - cloud providers validate on request
-    if generator.provider == "ollama" and request.model:
-        if not await ollama.model_exists(request.model):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Model '{request.model}' not found. Use GET /models to list available."
-            )
-
     try:
         return await generator.generate_dialog(request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -115,20 +92,14 @@ async def generate_response(request: SingleResponseRequest):
         Single response message.
 
     Raises:
-        HTTPException: If model not found or generation fails.
+        HTTPException: If generation fails.
     """
     generator = DialogGenerator(model=request.model)
 
-    # Only validate Ollama models - cloud providers validate on request
-    if generator.provider == "ollama" and request.model:
-        if not await ollama.model_exists(request.model):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Model '{request.model}' not found."
-            )
-
     try:
         return await generator.generate_single_response(request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -149,18 +120,6 @@ async def compare_models(request: CompareRequest):
     results = []
 
     for model_name in request.models:
-        if not await ollama.model_exists(model_name):
-            results.append(CompareResult(
-                model=model_name,
-                dialog=GeneratedDialog(
-                    messages=[],
-                    model_used=model_name,
-                    generation_params={"error": "Model not found"}
-                ),
-                generation_time_ms=0
-            ))
-            continue
-
         generator = DialogGenerator(model=model_name)
         gen_request = GenerateRequest(
             subject=request.subject,

@@ -44,16 +44,22 @@ class TestDetectProvider:
         assert detect_provider("opus") == "anthropic"
         assert detect_provider("HAIKU") == "anthropic"
 
-    def test_detect_ollama_default(self):
-        """Defaults to ollama for unknown models."""
-        assert detect_provider("hermes3:8b") == "ollama"
-        assert detect_provider("dolphin3:latest") == "ollama"
-        assert detect_provider("llama3.1:8b") == "ollama"
-        assert detect_provider("custom-model") == "ollama"
-        assert detect_provider("local-model:v1") == "ollama"
+    def test_unknown_model_raises_error(self):
+        """Raises ValueError for unknown models."""
+        with pytest.raises(ValueError, match="Unknown model"):
+            detect_provider("hermes3:8b")
+        with pytest.raises(ValueError, match="Unknown model"):
+            detect_provider("dolphin3:latest")
+        with pytest.raises(ValueError, match="Unknown model"):
+            detect_provider("llama3.1:8b")
+        with pytest.raises(ValueError, match="Unknown model"):
+            detect_provider("custom-model")
+        with pytest.raises(ValueError, match="Unknown model"):
+            detect_provider("local-model:v1")
 
     def test_detect_with_tags_and_versions(self):
         """Handles models with tags and version suffixes."""
         assert detect_provider("gpt-4o-mini:latest") == "openai"
         assert detect_provider("claude-3-haiku:v1") == "anthropic"
-        assert detect_provider("mistral:7b") == "ollama"
+        with pytest.raises(ValueError, match="Unknown model"):
+            detect_provider("mistral:7b")

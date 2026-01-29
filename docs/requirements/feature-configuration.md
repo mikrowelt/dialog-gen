@@ -17,8 +17,8 @@ Hierarchical configuration system supporting file-based config, environment vari
 ### models
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `default` | string | "hermes3:8b" | Default Ollama model |
-| `fallback` | string | "dolphin3:latest" | Fallback model |
+| `default` | string | "hermes3:8b" | Default model (legacy, use cloud models) |
+| `fallback` | string | "dolphin3:latest" | Fallback model (legacy) |
 | `comparison` | string[] | [...] | Models for comparison |
 
 ### generation
@@ -40,7 +40,7 @@ Hierarchical configuration system supporting file-based config, environment vari
 ### cloud
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `provider` | string | "ollama" | Default provider |
+| `provider` | string | "anthropic" | Default provider |
 | `openai_api_key` | string | null | OpenAI API key |
 | `anthropic_api_key` | string | null | Anthropic API key |
 | `openai_base_url` | string | "https://api.openai.com/v1" | OpenAI endpoint |
@@ -53,7 +53,6 @@ Hierarchical configuration system supporting file-based config, environment vari
 |---------|------|---------|-------------|
 | `host` | string | "0.0.0.0" | API bind host |
 | `port` | int | 8100 | API port |
-| `ollama_url` | string | "http://localhost:11434" | Ollama endpoint |
 
 ### prompts
 Language-specific prompt templates (see [Multi-Language](./feature-multi-language.md)).
@@ -66,7 +65,6 @@ Language-specific prompt templates (see [Multi-Language](./feature-multi-languag
 | `DIALOG_GEN_TEMPERATURE` | generation.temperature |
 | `DIALOG_GEN_MAX_TOKENS` | generation.max_tokens |
 | `DIALOG_GEN_LANGUAGE` | style.language |
-| `DIALOG_GEN_OLLAMA_URL` | api.ollama_url |
 | `DIALOG_GEN_API_HOST` | api.host |
 | `DIALOG_GEN_API_PORT` | api.port |
 | `DIALOG_GEN_PROVIDER` | cloud.provider |
@@ -84,7 +82,7 @@ dialog-gen config show models       # Single section
 dialog-gen config get models.default
 
 # Modify
-dialog-gen config set models.default dolphin3:latest
+dialog-gen config set cloud.provider anthropic
 dialog-gen config set generation.temperature 0.9
 
 # Export/Import
@@ -128,12 +126,12 @@ dialog-gen config reset models      # Single section
 
 ## Verification Criteria
 
-- [ ] Config file loads on startup
-- [ ] Environment variables override file
-- [ ] CLI flags override both
-- [ ] Request params override all
-- [ ] API keys masked in `config show`
-- [ ] Invalid values rejected
+- [x] Config file loads on startup
+- [x] Environment variables override file
+- [x] CLI flags override both
+- [x] Request params override all
+- [x] API keys masked in `config show`
+- [x] Invalid values rejected
 
 ## Related
 

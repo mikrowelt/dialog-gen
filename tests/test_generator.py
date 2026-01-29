@@ -19,8 +19,16 @@ class TestDialogGenerator:
 
     def test_init_custom_model(self):
         """Generator accepts custom model."""
-        generator = DialogGenerator(model="custom:latest")
-        assert generator.model == "custom:latest"
+        generator = DialogGenerator(model="gpt-4o-mini")
+        assert generator.model == "gpt-4o-mini"
+
+    def test_init_explicit_provider(self):
+        """Generator accepts explicit provider."""
+        generator = DialogGenerator(provider="anthropic")
+        assert generator.provider == "anthropic"
+
+        generator2 = DialogGenerator(provider="openai")
+        assert generator2.provider == "openai"
 
 
 class TestBuildSystemPrompt:
@@ -28,7 +36,7 @@ class TestBuildSystemPrompt:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator()
+        return DialogGenerator(provider="anthropic")
 
     @pytest.fixture
     def subject(self):
@@ -105,7 +113,7 @@ class TestBuildGenerationPrompt:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator()
+        return DialogGenerator(provider="anthropic")
 
     @pytest.fixture
     def subject(self):
@@ -161,7 +169,7 @@ class TestParseDialog:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator()
+        return DialogGenerator(provider="anthropic")
 
     def test_parse_json_array(self, generator):
         """Parses valid JSON array."""
@@ -209,7 +217,7 @@ class TestParseDialogLines:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator()
+        return DialogGenerator(provider="anthropic")
 
     def test_parse_simple_lines(self, generator):
         """Parses simple role: content lines."""
@@ -240,7 +248,7 @@ class TestCalculateDelay:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator()
+        return DialogGenerator(provider="anthropic")
 
     def test_short_message(self, generator):
         """Short message has short delay."""
@@ -265,7 +273,7 @@ class TestGenerateDialog:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator(model="test-model", provider="ollama")
+        return DialogGenerator(model="claude-3-haiku", provider="anthropic")
 
     @pytest.fixture
     def subject(self):
@@ -291,7 +299,7 @@ class TestGenerateDialog:
 
         assert result is not None
         assert len(result.messages) == 4
-        assert result.model_used == "test-model"
+        assert result.model_used == "claude-3-haiku"
         assert "generation_time_ms" in result.generation_params
 
     @pytest.mark.asyncio
@@ -353,7 +361,7 @@ class TestGenerateSingleResponse:
 
     @pytest.fixture
     def generator(self):
-        return DialogGenerator(model="test-model", provider="ollama")
+        return DialogGenerator(model="claude-3-haiku", provider="anthropic")
 
     @pytest.fixture
     def subject(self):
@@ -465,18 +473,14 @@ class TestCallLlm:
             assert call_kwargs['provider'] == 'anthropic'
 
     @pytest.mark.asyncio
-    async def test_call_llm_uses_ollama_by_default(self):
-        """_call_llm uses Ollama for unknown models."""
-        generator = DialogGenerator(provider="auto")
+    async def test_call_llm_raises_for_unknown_provider(self):
+        """_call_llm raises error for unknown provider."""
+        generator = DialogGenerator(provider="unknown")
 
-        with patch('dialog_gen.generator.ollama') as mock_ollama:
-            mock_ollama.generate = AsyncMock(return_value="response")
-
+        with pytest.raises(ValueError, match="Unknown provider"):
             await generator._call_llm(
-                model="hermes3:8b",
+                model="unknown-model",
                 prompt="test",
                 system="system",
                 temperature=0.8
             )
-
-            mock_ollama.generate.assert_called_once()

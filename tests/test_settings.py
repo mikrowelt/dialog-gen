@@ -24,8 +24,8 @@ class TestModelSettings:
 
     def test_custom(self):
         """ModelSettings can be customized."""
-        settings = ModelSettings(default="custom:latest")
-        assert settings.default == "custom:latest"
+        settings = ModelSettings(default="claude-3-haiku")
+        assert settings.default == "claude-3-haiku"
 
 
 class TestGenerationSettings:
@@ -88,7 +88,7 @@ class TestCloudSettings:
         """CloudSettings has correct defaults."""
         from dialog_gen.settings import CloudSettings
         settings = CloudSettings()
-        assert settings.provider == "ollama"
+        assert settings.provider == "anthropic"
         assert settings.openai_api_key is None
         assert settings.anthropic_api_key is None
         assert settings.openai_model == "gpt-4o-mini"
@@ -103,6 +103,22 @@ class TestCloudSettings:
         )
         assert settings.provider == "openai"
         assert settings.openai_api_key == "sk-test"
+
+
+class TestApiSettings:
+    """Tests for ApiSettings."""
+
+    def test_defaults(self):
+        """ApiSettings has correct defaults."""
+        settings = ApiSettings()
+        assert settings.host == "0.0.0.0"
+        assert settings.port == 8100
+
+    def test_custom(self):
+        """ApiSettings can be customized."""
+        settings = ApiSettings(host="127.0.0.1", port=9000)
+        assert settings.host == "127.0.0.1"
+        assert settings.port == 9000
 
 
 class TestSettings:
@@ -126,7 +142,6 @@ class TestSettings:
         assert settings.temperature == settings.generation.temperature
         assert settings.top_p == settings.generation.top_p
         assert settings.max_tokens == settings.generation.max_tokens
-        assert settings.ollama_base_url == settings.api.ollama_url
 
     def test_get_prompt(self):
         """get_prompt returns correct prompts."""

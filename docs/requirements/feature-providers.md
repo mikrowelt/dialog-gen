@@ -2,22 +2,21 @@
 
 ## Overview
 
-Support for multiple LLM providers with unified interface: local Ollama, OpenAI API, and Anthropic API.
+Support for cloud LLM providers with unified interface: OpenAI API and Anthropic API.
 
 ## Supported Providers
 
 | Provider | Type | Default Model | Status |
 |----------|------|---------------|--------|
-| `ollama` | Local | hermes3:8b | Production |
+| `anthropic` | Cloud | claude-3-haiku-20240307 | Production (Default) |
 | `openai` | Cloud | gpt-4o-mini | Production |
-| `anthropic` | Cloud | claude-3-haiku-20240307 | Production |
 
 ## Provider Selection Priority
 
 1. Explicit `provider` parameter in request
 2. Explicit `provider` in generator init
 3. Auto-detect from model name
-4. `settings.cloud.provider` default
+4. `settings.cloud.provider` default (anthropic)
 
 ## Auto-Detection Rules
 
@@ -25,26 +24,9 @@ Support for multiple LLM providers with unified interface: local Ollama, OpenAI 
 |---------|----------|
 | `gpt-*`, `o1-*`, `chatgpt*`, `davinci*`, `text-*` | openai |
 | `claude*`, `haiku`, `sonnet`, `opus` | anthropic |
-| Everything else | ollama |
+| Everything else | **raises ValueError** |
 
 ## Provider-Specific Details
-
-### Ollama (Local)
-
-**Endpoint**: `{settings.api.ollama_url}/api/generate`
-
-**Features**:
-- Model download via `/api/pull`
-- Model listing via `/api/tags`
-- Chat completion via `/api/chat`
-- Streaming support
-
-**Recommended Models**:
-| Model | Size | Brand Mention Rate |
-|-------|------|-------------------|
-| hermes3:8b | 8B | 100% |
-| dolphin3:latest | 8B | 100% |
-| nous-hermes2:10.7b | 10.7B | ~70% |
 
 ### OpenAI
 
@@ -107,19 +89,18 @@ Provider auto-detected from model name.
 | Error | Handling |
 |-------|----------|
 | Missing API key | ValueError with clear message |
-| Model not found (Ollama) | HTTP 404, suggest `dialog-gen pull` |
+| Unknown model/provider | ValueError with supported providers list |
 | Rate limit | Propagate error to caller |
 | Network error | Timeout after 120s |
 
 ## Code Reference (ast-grep)
 
 ### Classes
-- `class OllamaClient` - Local Ollama LLM client
 - `class CloudClient` - OpenAI/Anthropic cloud client
 
 ### Key Functions
 - `def detect_provider(model: str) -> str` - Shared provider detection (in `utils.py`)
-- `async def generate($$$) -> str` - Generate text from prompt (both clients)
+- `async def generate($$$) -> str` - Generate text from prompt
 - `def get_cloud_client() -> CloudClient` - Singleton accessor
 - `def reset_cloud_client() -> None` - Reset for testing/config reload
 - `async def _generate_openai($$$) -> str` - OpenAI API call
@@ -127,17 +108,16 @@ Provider auto-detected from model name.
 - `async def list_models($$$) -> list` - List available models
 
 ### Singleton Instances
-- `ollama` - Global OllamaClient instance
 - `cloud_client` - Global CloudClient instance (lazy-loaded)
 
 ## Verification Criteria
 
-- [ ] Ollama generation works locally
-- [ ] OpenAI generation works with valid key
-- [ ] Anthropic generation works with valid key
-- [ ] Auto-detection selects correct provider
-- [ ] Missing API key gives clear error
-- [ ] Model normalization works (haiku → full name)
+- [x] OpenAI generation works with valid key
+- [x] Anthropic generation works with valid key
+- [x] Auto-detection selects correct provider
+- [x] Unknown models raise ValueError
+- [x] Missing API key gives clear error
+- [x] Model normalization works (haiku -> full name)
 
 ## Related
 

@@ -1,7 +1,7 @@
 [project]
 name = "dialog-gen"
-version = "0.1.0"
-description = "Local AI dialog generator using Ollama"
+version = "0.2.0"
+description = "AI dialog generator using cloud LLMs (OpenAI, Anthropic)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.109.0",

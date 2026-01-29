@@ -460,13 +460,13 @@ class SingleResponseRequest(_SubjectRequestMixin, BaseModel):
 class ModelInfo(BaseModel):
     """Information about an available model.
 
-    Represents metadata about an installed Ollama model.
+    Represents metadata about an available model.
 
     Attributes:
         name: Model name/tag.
-        size: Human-readable size.
-        modified_at: Last modification timestamp.
-        digest: Short model digest hash.
+        size: Human-readable size (optional).
+        modified_at: Last modification timestamp (optional).
+        digest: Short model digest hash (optional).
     """
     name: str = Field(description="Model name/tag")
     size: Optional[str] = Field(default=None, description="Human-readable size")

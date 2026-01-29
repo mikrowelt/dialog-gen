@@ -17,7 +17,6 @@ from rich.tree import Tree
 from typing import Optional
 from pathlib import Path
 
-from .ollama_client import ollama
 from .cloud_client import get_cloud_client, reset_cloud_client
 from .generator import DialogGenerator
 from .models import Subject, Brand, Campaign, DialogContext, GenerateRequest
@@ -37,103 +36,54 @@ console = Console()
 
 @app.command()
 def models(
-    provider: str = typer.Option(None, "--provider", "-p", help="Provider: ollama, openai, anthropic")
+    provider: str = typer.Option(None, "--provider", "-p", help="Provider: openai, anthropic")
 ):
     """List available models."""
     provider = provider or settings.cloud.provider
 
+    if provider not in ("openai", "anthropic"):
+        console.print(f"[red]Unknown provider: {provider}. Use 'openai' or 'anthropic'[/red]")
+        raise typer.Exit(1)
+
     async def _list():
-        if provider in ("openai", "anthropic"):
-            cloud = get_cloud_client()
-            return await cloud.list_models(provider)
-        else:
-            model_list = await ollama.list_models()
-            await ollama.close()
-            return model_list
+        cloud = get_cloud_client()
+        return await cloud.list_models(provider)
 
     result = asyncio.run(_list())
 
-    if provider in ("openai", "anthropic"):
-        table = Table(title=f"Available {provider.title()} Models")
-        table.add_column("Name", style="cyan")
+    table = Table(title=f"Available {provider.title()} Models")
+    table.add_column("Name", style="cyan")
 
-        for name in result:
-            table.add_row(name)
-    else:
-        table = Table(title="Available Ollama Models")
-        table.add_column("Name", style="cyan")
-        table.add_column("Size", style="green")
-        table.add_column("Modified", style="dim")
-
-        for m in result:
-            table.add_row(m.name, m.size or "?", m.modified_at[:10] if m.modified_at else "?")
+    for name in result:
+        table.add_row(name)
 
     console.print(table)
-
-
-@app.command()
-def pull(model: str):
-    """Pull a model from Ollama."""
-    async def _pull():
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console
-        ) as progress:
-            task = progress.add_task(f"Pulling {model}...", total=None)
-
-            async for status in ollama.pull_model(model):
-                if "status" in status:
-                    progress.update(task, description=f"{model}: {status['status']}")
-                if status.get("status") == "success":
-                    progress.update(task, description=f"[green]{model} pulled successfully!")
-
-        await ollama.close()
-
-    asyncio.run(_pull())
 
 
 @app.command()
 def recommend():
     """Show recommended models for dialog generation."""
-    console.print("\n[bold cyan]Local Models (Ollama)[/bold cyan]")
-    ollama_models = [
-        ("hermes3:8b", "8B - Best for roleplay, 100% brand mention"),
-        ("dolphin3:latest", "8B - Good reasoning, 100% brand mention"),
-        ("nous-hermes2:10.7b", "10.7B - Larger, faster, ~70% brand mention"),
-        ("dolphin-llama3:8b", "8B - Uncensored Llama 3 based"),
-    ]
-
-    table = Table()
-    table.add_column("Model", style="cyan")
-    table.add_column("Description", style="green")
-    table.add_column("Command", style="dim")
-
-    for model, desc in ollama_models:
-        table.add_row(model, desc, f"ollama pull {model}")
-
-    console.print(table)
-
     console.print("\n[bold cyan]Cloud Models[/bold cyan]")
     cloud_models = [
         ("openai", "gpt-4o-mini", "Fast & cheap, good for dialog"),
         ("openai", "gpt-4o", "Best quality, higher cost"),
         ("anthropic", "claude-3-haiku", "Fast & cheap Anthropic model"),
+        ("anthropic", "claude-3-5-sonnet", "Good quality, balanced cost"),
         ("anthropic", "claude-sonnet-4", "Best quality Anthropic"),
     ]
 
-    table2 = Table()
-    table2.add_column("Provider", style="yellow")
-    table2.add_column("Model", style="cyan")
-    table2.add_column("Description", style="green")
+    table = Table()
+    table.add_column("Provider", style="yellow")
+    table.add_column("Model", style="cyan")
+    table.add_column("Description", style="green")
 
     for provider, model, desc in cloud_models:
-        table2.add_row(provider, model, desc)
+        table.add_row(provider, model, desc)
 
-    console.print(table2)
+    console.print(table)
 
-    console.print("\n[dim]Configure cloud: dialog-gen config set cloud.provider openai[/dim]")
-    console.print("[dim]Set API key: dialog-gen config set cloud.openai_api_key sk-...[/dim]")
+    console.print("\n[dim]Configure provider: dialog-gen config set cloud.provider anthropic[/dim]")
+    console.print("[dim]Set API key: dialog-gen config set cloud.anthropic_api_key sk-ant-...[/dim]")
 
 
 # ============================================================================
@@ -167,7 +117,7 @@ def generate(
     # Common options
     context_file: str = typer.Option(None, "--context", "-c", help="JSON file with context"),
     model: str = typer.Option(None, "--model", "-m", help="Model to use"),
-    provider: str = typer.Option(None, "--provider", "-p", help="Provider: ollama, openai, anthropic"),
+    provider: str = typer.Option(None, "--provider", "-p", help="Provider: openai, anthropic"),
     turns: int = typer.Option(None, "--turns", help="Number of messages"),
     language: str = typer.Option(None, "--lang", "-l", help="Language: ru, en"),
     temperature: float = typer.Option(None, "--temp", help="Temperature (0-2)")
@@ -270,8 +220,6 @@ def generate(
             result = await generator.generate_dialog(request)
             progress.update(task, description="[green]Done!")
 
-        if provider == "ollama":
-            await ollama.close()
         return result
 
     result = asyncio.run(_generate())
@@ -294,7 +242,7 @@ def generate(
         console.print()
 
     # Show result
-    provider_used = result.generation_params.get('provider', 'ollama')
+    provider_used = result.generation_params.get('provider', 'anthropic')
     console.print(Panel(
         f"[bold]Provider:[/bold] {provider_used}\n"
         f"[bold]Model:[/bold] {result.model_used}\n"
@@ -356,12 +304,6 @@ def compare(
             provider = detect_provider(model_name)
             console.print(f"\n[cyan]Testing {model_name} ({provider})...[/cyan]")
 
-            # Only check model existence for Ollama (cloud providers validate on request)
-            if provider == "ollama":
-                if not await ollama.model_exists(model_name):
-                    console.print(f"[red]Model {model_name} not found locally, skipping[/red]")
-                    continue
-
             request = GenerateRequest(
                 subject=subject,
                 num_turns=turns,
@@ -385,7 +327,6 @@ def compare(
             except Exception as e:
                 console.print(f"[red]Error: {e}[/red]")
 
-        await ollama.close()
         return results
 
     results = asyncio.run(_compare())
@@ -475,8 +416,6 @@ def interactive(
             messages.append({"role": response.role, "content": response.content})
             color = _get_role_color(response.role)
             console.print(f"[{color}]{response.role.upper()}:[/{color}] {response.content}\n")
-
-        await ollama.close()
 
     asyncio.run(_session())
 

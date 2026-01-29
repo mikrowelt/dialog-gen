@@ -55,11 +55,14 @@ class TestDetectProvider:
         assert client._detect_provider("sonnet") == "anthropic"
         assert client._detect_provider("opus") == "anthropic"
 
-    def test_detect_ollama_default(self, client):
-        """Defaults to ollama for unknown models."""
-        assert client._detect_provider("hermes3:8b") == "ollama"
-        assert client._detect_provider("dolphin3:latest") == "ollama"
-        assert client._detect_provider("custom-model") == "ollama"
+    def test_detect_unknown_raises_error(self, client):
+        """Raises error for unknown models."""
+        with pytest.raises(ValueError, match="Unknown model"):
+            client._detect_provider("hermes3:8b")
+        with pytest.raises(ValueError, match="Unknown model"):
+            client._detect_provider("dolphin3:latest")
+        with pytest.raises(ValueError, match="Unknown model"):
+            client._detect_provider("custom-model")
 
 
 class TestListModels:

@@ -2,74 +2,7 @@
 
 ## Overview
 
-Two client implementations provide access to local and cloud LLMs:
-- `OllamaClient` (`ollama_client.py`) - Local Ollama server
-- `CloudClient` (`cloud_client.py`) - OpenAI and Anthropic APIs
-
-## OllamaClient
-
-### Singleton Pattern
-
-```python
-ollama = OllamaClient()  # Global instance
-```
-
-### Class Structure
-
-```python
-class OllamaClient:
-    def __init__(self, base_url: str = None):
-        self.base_url = base_url or settings.api.ollama_url
-        self._client: Optional[httpx.AsyncClient] = None
-```
-
-### Methods
-
-#### list_models() → list[ModelInfo]
-- Endpoint: `GET /api/tags`
-- Returns formatted model info with human-readable sizes
-
-#### generate()
-```python
-async def generate(
-    self,
-    model: str,
-    prompt: str,
-    system: Optional[str] = None,
-    temperature: Optional[float] = None,
-    top_p: Optional[float] = None,
-    max_tokens: Optional[int] = None,
-    stream: bool = False
-) -> str:
-```
-- Endpoint: `POST /api/generate`
-- Maps `max_tokens` → `num_predict` (Ollama naming)
-
-#### chat()
-```python
-async def chat(
-    self,
-    model: str,
-    messages: list[dict],
-    system: Optional[str] = None,
-    ...
-) -> str:
-```
-- Endpoint: `POST /api/chat`
-- Messages format: `[{role, content}, ...]`
-
-#### pull_model() → AsyncIterator[dict]
-- Endpoint: `POST /api/pull`
-- Streaming response for progress updates
-
-#### model_exists() → bool
-- Checks if model available locally
-
-### Connection Management
-
-- Lazy client initialization
-- 300s timeout
-- `close()` for cleanup
+The `CloudClient` provides access to cloud LLMs (OpenAI and Anthropic APIs).
 
 ## CloudClient
 
@@ -193,7 +126,7 @@ Uses the shared `detect_provider()` function from `utils.py`. See [Utilities](./
 |---------|----------|
 | `gpt-*`, `o1-*`, `chatgpt*`, `davinci*`, `text-*` | openai |
 | `claude*`, `haiku`, `sonnet`, `opus` | anthropic |
-| default | ollama |
+| unknown | **raises ValueError** |
 
 ### list_models()
 
@@ -205,6 +138,7 @@ Uses the shared `detect_provider()` function from `utils.py`. See [Utilities](./
 | Error | Handling |
 |-------|----------|
 | Missing API key | `ValueError` with clear message |
+| Unknown provider/model | `ValueError` with supported providers list |
 | HTTP 401 | Invalid API key |
 | HTTP 429 | Rate limited |
 | HTTP 5xx | Server error |

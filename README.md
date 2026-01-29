@@ -1,10 +1,10 @@
 # dialog-gen
 
-Local AI-powered dialog generator for natural subject mentions in Telegram-style conversations.
+AI-powered dialog generator for natural subject mentions in Telegram-style conversations using cloud LLMs (OpenAI, Anthropic).
 
 ## Features
 
-- Generate natural dialogs with subject mentions using local LLMs (via Ollama) or cloud (OpenAI, Anthropic)
+- Generate natural dialogs with subject mentions using cloud LLMs (OpenAI, Anthropic)
 - **Flexible subject types**: brands, products, topics, info, events
 - Multi-person conversations (person1, person2, person3...)
 - Context-aware generation - continue existing conversations
@@ -27,10 +27,10 @@ pip install -e .
 
 ```bash
 # Generate a dialog mentioning a brand
-dialog-gen generate -b "FoodBox" -w "food delivery" -f "fast,cheap"
+dialog-gen generate -n "FoodBox" -d "food delivery" -a "fast,cheap"
 
-# Or use the new syntax
-dialog-gen generate -n "FoodBox" -d "food delivery" -t brand -a "fast,cheap"
+# Or use the legacy syntax
+dialog-gen generate -b "FoodBox" -w "food delivery" -f "fast,cheap"
 ```
 
 ### Topic Injection (News, Trends)
@@ -90,7 +90,7 @@ dialog-gen generate [OPTIONS]
 # Common options
   -c, --context PATH    JSON file with context messages
   -m, --model TEXT      Model to use
-  -p, --provider TEXT   Provider: ollama, openai, anthropic
+  -p, --provider TEXT   Provider: openai, anthropic
   --turns INT           Number of messages to generate (default: 4)
   -l, --lang TEXT       Language: ru, en (default: ru)
   --temp FLOAT          Temperature 0-2 (default: 0.8)
@@ -110,7 +110,6 @@ dialog-gen generate [OPTIONS]
 
 ```bash
 dialog-gen models              # List available models
-dialog-gen pull <model>        # Pull a model from Ollama
 dialog-gen recommend           # Show recommended models
 ```
 
@@ -120,20 +119,20 @@ dialog-gen recommend           # Show recommended models
 # OpenAI
 dialog-gen generate -n "FoodBox" -d "delivery" -p openai -m gpt-4o-mini
 
-# Anthropic
+# Anthropic (default)
 dialog-gen generate -n "FoodBox" -d "delivery" -p anthropic -m haiku
 ```
 
 ### Comparison
 
 ```bash
-dialog-gen compare -n "FoodBox" -d "delivery" -m "hermes3:8b,dolphin3:latest"
+dialog-gen compare -n "FoodBox" -d "delivery" -m "gpt-4o-mini,claude-3-haiku"
 ```
 
 ### Interactive Mode
 
 ```bash
-dialog-gen interactive -n "FoodBox" -d "food delivery" -m hermes3:8b
+dialog-gen interactive -n "FoodBox" -d "food delivery" -m claude-3-haiku
 ```
 
 ### API Server
@@ -159,7 +158,7 @@ dialog-gen config get models.default
 ### Modify Configuration
 
 ```bash
-dialog-gen config set models.default dolphin3:latest
+dialog-gen config set models.default claude-3-haiku
 dialog-gen config set generation.temperature 0.9
 dialog-gen config set style.language en
 dialog-gen config set cloud.anthropic_api_key sk-ant-...
@@ -173,8 +172,8 @@ dialog-gen config set cloud.openai_api_key sk-...
 dialog-gen config set cloud.anthropic_api_key sk-ant-...
 
 # Or use environment variables
-export OPENAI_API_KEY=sk-...
-export ANTHROPIC_API_KEY=sk-ant-...
+export DIALOG_GEN_OPENAI_API_KEY=sk-...
+export DIALOG_GEN_ANTHROPIC_API_KEY=sk-ant-...
 ```
 
 ### Configuration Sections
@@ -213,18 +212,11 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 ## Recommended Models
 
-### Local (Ollama)
-| Model | Size | Description |
-|-------|------|-------------|
-| hermes3:8b | 8B | Best for roleplay, 100% brand mention |
-| dolphin3:latest | 8B | Good reasoning, 100% brand mention |
-| nous-hermes2:10.7b | 10.7B | Larger, faster but ~70% brand mention |
-
-### Cloud
 | Provider | Model | Best For |
 |----------|-------|----------|
 | Anthropic | claude-3-haiku | Fast, cheap, good quality |
-| Anthropic | claude-3-sonnet | Higher quality |
+| Anthropic | claude-3-5-sonnet | Higher quality |
+| Anthropic | claude-sonnet-4 | Best quality |
 | OpenAI | gpt-4o-mini | Fast, cheap |
 | OpenAI | gpt-4o | Highest quality |
 
@@ -235,7 +227,6 @@ When running `dialog-gen serve`:
 - `POST /generate` - Generate dialog
 - `POST /respond` - Generate single response
 - `POST /compare` - Compare models
-- `GET /models` - List models
 - `GET /health` - Health check
 
 ### API Request Example
@@ -329,7 +320,7 @@ subject = Subject(
 )
 
 # Generate dialog
-generator = DialogGenerator(model="hermes3:8b")
+generator = DialogGenerator(model="claude-3-haiku", provider="anthropic")
 request = GenerateRequest(subject=subject, num_turns=4, language="en")
 result = await generator.generate_dialog(request)
 

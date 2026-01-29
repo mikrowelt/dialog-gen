@@ -3,7 +3,6 @@
 import asyncio
 from dialog_gen.generator import DialogGenerator
 from dialog_gen.models import Brand, DialogContext, GenerateRequest
-from dialog_gen.ollama_client import ollama
 
 # Sample existing chat - friends discussing weekend plans
 SAMPLE_CHAT = [
@@ -39,11 +38,11 @@ async def test_natural_integration():
     print("=" * 60)
     print("TEST 1: NATURAL INTEGRATION (CityRide - transport context)")
     print("=" * 60)
-    print("\n📱 Existing chat:")
+    print("\n[Phone] Existing chat:")
     for msg in SAMPLE_CHAT:
         print(f"  {msg['role']}: {msg['content']}")
 
-    print(f"\n🏷️  Brand: {BRAND.name} - {BRAND.description[:50]}...")
+    print(f"\n[Tag]  Brand: {BRAND.name} - {BRAND.description[:50]}...")
 
     context = DialogContext(
         messages=SAMPLE_CHAT,
@@ -55,18 +54,18 @@ async def test_natural_integration():
         brand=BRAND,
         context=context,
         num_turns=3,
-        model="hermes3:8b",
+        model="claude-3-haiku",
         language="ru",
         temperature=0.9
     )
 
-    generator = DialogGenerator(model="hermes3:8b")
+    generator = DialogGenerator(model="claude-3-haiku", provider="anthropic")
     result = await generator.generate_dialog(request)
 
-    print("\n✅ Generated continuation:")
+    print("\n[Check] Generated continuation:")
     for msg in result.messages:
         print(f"  {msg.role.upper()}: {msg.content}")
-    print(f"\n⏱️  Generated in {result.generation_params.get('generation_time_ms')}ms")
+    print(f"\n[Timer]  Generated in {result.generation_params.get('generation_time_ms')}ms")
 
     return result
 
@@ -76,8 +75,8 @@ async def test_forced_integration():
     print("\n" + "=" * 60)
     print("TEST 2: FORCED INTEGRATION (CryptoMax - wrong context)")
     print("=" * 60)
-    print("\n📱 Same chat about weekend/transport...")
-    print(f"🏷️  Brand: {BRAND_CRYPTO.name} - {BRAND_CRYPTO.description[:50]}...")
+    print("\n[Phone] Same chat about weekend/transport...")
+    print(f"[Tag]  Brand: {BRAND_CRYPTO.name} - {BRAND_CRYPTO.description[:50]}...")
 
     context = DialogContext(
         messages=SAMPLE_CHAT,
@@ -89,18 +88,18 @@ async def test_forced_integration():
         brand=BRAND_CRYPTO,
         context=context,
         num_turns=3,
-        model="hermes3:8b",
+        model="claude-3-haiku",
         language="ru",
         temperature=0.9
     )
 
-    generator = DialogGenerator(model="hermes3:8b")
+    generator = DialogGenerator(model="claude-3-haiku", provider="anthropic")
     result = await generator.generate_dialog(request)
 
-    print("\n❌ Generated (likely looks forced):")
+    print("\n[X] Generated (likely looks forced):")
     for msg in result.messages:
         print(f"  {msg.role.upper()}: {msg.content}")
-    print(f"\n⏱️  Generated in {result.generation_params.get('generation_time_ms')}ms")
+    print(f"\n[Timer]  Generated in {result.generation_params.get('generation_time_ms')}ms")
 
     return result
 
@@ -110,24 +109,24 @@ async def test_no_context():
     print("\n" + "=" * 60)
     print("TEST 3: NO CONTEXT (fresh conversation start)")
     print("=" * 60)
-    print(f"🏷️  Brand: {BRAND.name}")
+    print(f"[Tag]  Brand: {BRAND.name}")
 
     request = GenerateRequest(
         brand=BRAND,
         context=None,
         num_turns=4,
-        model="hermes3:8b",
+        model="claude-3-haiku",
         language="ru",
         temperature=0.8
     )
 
-    generator = DialogGenerator(model="hermes3:8b")
+    generator = DialogGenerator(model="claude-3-haiku", provider="anthropic")
     result = await generator.generate_dialog(request)
 
-    print("\n🆕 Generated fresh dialog:")
+    print("\n[New] Generated fresh dialog:")
     for msg in result.messages:
         print(f"  {msg.role.upper()}: {msg.content}")
-    print(f"\n⏱️  Generated in {result.generation_params.get('generation_time_ms')}ms")
+    print(f"\n[Timer]  Generated in {result.generation_params.get('generation_time_ms')}ms")
 
     return result
 
@@ -138,7 +137,7 @@ async def test_model_comparison():
     print("TEST 4: MODEL COMPARISON")
     print("=" * 60)
 
-    models = ["dolphin3", "hermes3:8b"]
+    models = ["gpt-4o-mini", "claude-3-haiku"]
 
     context = DialogContext(
         messages=SAMPLE_CHAT,
@@ -147,7 +146,7 @@ async def test_model_comparison():
     )
 
     for model in models:
-        print(f"\n🤖 Model: {model}")
+        print(f"\n[Robot] Model: {model}")
 
         request = GenerateRequest(
             brand=BRAND,
@@ -159,15 +158,18 @@ async def test_model_comparison():
         )
 
         generator = DialogGenerator(model=model)
-        result = await generator.generate_dialog(request)
+        try:
+            result = await generator.generate_dialog(request)
 
-        for msg in result.messages:
-            print(f"  {msg.role.upper()}: {msg.content}")
-        print(f"  ⏱️  {result.generation_params.get('generation_time_ms')}ms")
+            for msg in result.messages:
+                print(f"  {msg.role.upper()}: {msg.content}")
+            print(f"  [Timer]  {result.generation_params.get('generation_time_ms')}ms")
+        except Exception as e:
+            print(f"  [Error] {e}")
 
 
 async def main():
-    print("🧪 DIALOG INTEGRATION TEST SUITE")
+    print("[Test] DIALOG INTEGRATION TEST SUITE")
     print("Testing natural vs forced brand integration\n")
 
     await test_natural_integration()
@@ -175,8 +177,7 @@ async def main():
     await test_no_context()
     await test_model_comparison()
 
-    await ollama.close()
-    print("\n✅ All tests complete!")
+    print("\n[Check] All tests complete!")
 
 
 if __name__ == "__main__":

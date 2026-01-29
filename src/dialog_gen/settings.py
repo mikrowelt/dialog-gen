@@ -120,8 +120,8 @@ class PromptSettings(BaseModel):
 class CloudSettings(BaseModel):
     """Cloud LLM provider settings."""
     provider: str = Field(
-        default="ollama",
-        description="Default provider: ollama, openai, anthropic"
+        default="anthropic",
+        description="Default provider: openai, anthropic"
     )
     openai_api_key: Optional[str] = Field(
         default=None,
@@ -153,7 +153,6 @@ class ApiSettings(BaseModel):
     """API server settings."""
     host: str = Field(default="0.0.0.0", description="API bind host")
     port: int = Field(default=8100, ge=1, le=65535, description="API port")
-    ollama_url: str = Field(default="http://localhost:11434", description="Ollama API URL")
 
 
 class BrandDefaults(BaseModel):
@@ -196,11 +195,6 @@ class Settings(BaseModel):
         """Backward compatible access to max_tokens."""
         return self.generation.max_tokens
 
-    @property
-    def ollama_base_url(self) -> str:
-        """Backward compatible access to Ollama URL."""
-        return self.api.ollama_url
-
     def save(self) -> None:
         """Save settings to config file."""
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -226,7 +220,6 @@ class Settings(BaseModel):
             "DIALOG_GEN_TEMPERATURE": ("generation", "temperature"),
             "DIALOG_GEN_MAX_TOKENS": ("generation", "max_tokens"),
             "DIALOG_GEN_LANGUAGE": ("style", "language"),
-            "DIALOG_GEN_OLLAMA_URL": ("api", "ollama_url"),
             "DIALOG_GEN_API_HOST": ("api", "host"),
             "DIALOG_GEN_API_PORT": ("api", "port"),
             "DIALOG_GEN_PROVIDER": ("cloud", "provider"),

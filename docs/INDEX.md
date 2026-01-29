@@ -4,7 +4,7 @@
 
 ## Overview
 
-Dialog-Gen generates realistic Telegram-style conversations with naturally embedded subject mentions. It supports multiple subject types (brands, topics, information, events), multiple LLM providers (Ollama, OpenAI, Anthropic), and provides both CLI and REST API interfaces.
+Dialog-Gen generates realistic Telegram-style conversations with naturally embedded subject mentions. It supports multiple subject types (brands, topics, information, events), cloud LLM providers (OpenAI, Anthropic), and provides both CLI and REST API interfaces.
 
 ## Quick Links
 
@@ -18,7 +18,7 @@ Dialog-Gen generates realistic Telegram-style conversations with naturally embed
 
 - **6 Subject Types**: brand, product, service, topic, info, event
 - **Multi-Language**: Russian and English with localized prompts
-- **3 LLM Providers**: Ollama (local), OpenAI, Anthropic
+- **2 LLM Providers**: OpenAI, Anthropic
 - **Context Awareness**: Continue existing conversations
 - **Multi-Person**: Support for 3+ speakers
 - **Dual Interface**: CLI and REST API
@@ -32,7 +32,6 @@ dialog-gen/
 │   ├── generator.py       # Core generation engine
 │   ├── settings.py        # Configuration system
 │   ├── utils.py           # Shared utilities (detect_provider)
-│   ├── ollama_client.py   # Local LLM client
 │   ├── cloud_client.py    # OpenAI/Anthropic client
 │   ├── api.py             # REST API (FastAPI)
 │   └── cli.py             # CLI (Typer)
@@ -45,6 +44,9 @@ dialog-gen/
 ```bash
 # Install
 pip install -e .
+
+# Configure API key
+dialog-gen config set cloud.anthropic_api_key sk-ant-...
 
 # Generate dialog (brand)
 dialog-gen generate -n "FoodBox" -d "food delivery" -t brand

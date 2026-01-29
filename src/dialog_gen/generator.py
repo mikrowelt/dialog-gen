@@ -2,7 +2,7 @@
 Dialog generation engine.
 
 Generates natural Telegram-style conversations with brand mentions
-using local LLMs via Ollama or cloud providers (OpenAI, Anthropic).
+using cloud LLM providers (OpenAI, Anthropic).
 """
 
 import re
@@ -11,7 +11,6 @@ import random
 import json
 from typing import Optional
 
-from .ollama_client import ollama
 from .cloud_client import get_cloud_client
 from .settings import settings
 from .utils import detect_provider
@@ -22,20 +21,20 @@ from .models import (
 
 
 class DialogGenerator:
-    """Generates natural dialogs using LLMs (local or cloud).
+    """Generates natural dialogs using cloud LLMs.
 
     The generator creates realistic chat conversations that naturally
     incorporate brand mentions based on the provided context and settings.
 
-    Supports both local models via Ollama and cloud providers (OpenAI, Anthropic).
+    Supports cloud providers (OpenAI, Anthropic).
 
     Attributes:
         model: The LLM model to use for generation.
-        provider: Provider to use ('ollama', 'openai', 'anthropic', or 'auto').
+        provider: Provider to use ('openai', 'anthropic', or 'auto').
 
     Example:
-        >>> # Using local Ollama
-        >>> generator = DialogGenerator()
+        >>> # Using OpenAI
+        >>> generator = DialogGenerator(model="gpt-4o-mini", provider="openai")
         >>> request = GenerateRequest(
         ...     brand=Brand(name="FoodBox", what_is_it="food delivery"),
         ...     num_turns=4
@@ -44,8 +43,8 @@ class DialogGenerator:
         >>> for msg in result.messages:
         ...     print(f"{msg.role}: {msg.content}")
 
-        >>> # Using OpenAI
-        >>> generator = DialogGenerator(model="gpt-4o-mini", provider="openai")
+        >>> # Using Anthropic
+        >>> generator = DialogGenerator(model="claude-3-haiku", provider="anthropic")
     """
 
     def __init__(self, model: Optional[str] = None, provider: Optional[str] = None):
@@ -53,7 +52,7 @@ class DialogGenerator:
 
         Args:
             model: LLM model name. Defaults based on provider.
-            provider: Provider to use ('ollama', 'openai', 'anthropic', 'auto').
+            provider: Provider to use ('openai', 'anthropic', 'auto').
                      'auto' detects from model name. Defaults to settings.cloud.provider.
         """
         self.provider = provider or settings.cloud.provider
@@ -63,10 +62,9 @@ class DialogGenerator:
             self.model = model
         elif self.provider == "openai":
             self.model = settings.cloud.openai_model
-        elif self.provider == "anthropic":
-            self.model = settings.cloud.anthropic_model
         else:
-            self.model = settings.models.default
+            # Default to anthropic
+            self.model = settings.cloud.anthropic_model
 
     def _detect_provider(self, model: str) -> str:
         """Detect provider from model name.
@@ -375,27 +373,22 @@ IMPORTANT:
         if provider == "auto":
             provider = self._detect_provider(model)
 
-        if provider in ("openai", "anthropic"):
-            cloud = get_cloud_client()
-            return await cloud.generate(
-                model=model,
-                prompt=prompt,
-                system=system,
-                temperature=temperature,
-                top_p=settings.top_p,
-                max_tokens=settings.max_tokens,
-                provider=provider
+        if provider not in ("openai", "anthropic"):
+            raise ValueError(
+                f"Unknown provider: {provider}. "
+                "Supported providers: 'openai', 'anthropic'"
             )
-        else:
-            # Default to Ollama
-            return await ollama.generate(
-                model=model,
-                prompt=prompt,
-                system=system,
-                temperature=temperature,
-                top_p=settings.top_p,
-                max_tokens=settings.max_tokens
-            )
+
+        cloud = get_cloud_client()
+        return await cloud.generate(
+            model=model,
+            prompt=prompt,
+            system=system,
+            temperature=temperature,
+            top_p=settings.top_p,
+            max_tokens=settings.max_tokens,
+            provider=provider
+        )
 
     async def generate_dialog(self, request: GenerateRequest) -> GeneratedDialog:
         """Generate a complete dialog.

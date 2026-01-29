@@ -19,10 +19,13 @@ def detect_provider(model: str) -> str:
 Detects the LLM provider from a model name string.
 
 **Arguments:**
-- `model`: Model name to detect provider for (e.g., "gpt-4o-mini", "claude-3-haiku", "hermes3:8b")
+- `model`: Model name to detect provider for (e.g., "gpt-4o-mini", "claude-3-haiku")
 
 **Returns:**
-- `str`: Provider name - one of: `"openai"`, `"anthropic"`, `"ollama"`
+- `str`: Provider name - one of: `"openai"`, `"anthropic"`
+
+**Raises:**
+- `ValueError`: If model name doesn't match any known provider pattern
 
 **Detection Rules:**
 
@@ -30,7 +33,7 @@ Detects the LLM provider from a model name string.
 |---------|----------|
 | `gpt-*`, `o1-*`, `chatgpt*`, `davinci*`, `text-*` | `openai` |
 | `claude*`, `haiku`, `sonnet`, `opus` | `anthropic` |
-| Everything else | `ollama` |
+| Everything else | **raises ValueError** |
 
 **Usage:**
 
@@ -46,9 +49,9 @@ detect_provider("claude-3-haiku")    # -> "anthropic"
 detect_provider("haiku")             # -> "anthropic"
 detect_provider("sonnet")            # -> "anthropic"
 
-# Local Ollama models (default)
-detect_provider("hermes3:8b")        # -> "ollama"
-detect_provider("llama3:8b")         # -> "ollama"
+# Unknown models raise error
+detect_provider("hermes3:8b")        # -> raises ValueError
+detect_provider("llama3:8b")         # -> raises ValueError
 ```
 
 **Consumers:**

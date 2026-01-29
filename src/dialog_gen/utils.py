@@ -8,15 +8,16 @@ def detect_provider(model: str) -> str:
         model: Model name to detect provider for.
 
     Returns:
-        Provider name: 'openai', 'anthropic', or 'ollama'.
+        Provider name: 'openai' or 'anthropic'.
+
+    Raises:
+        ValueError: If model name doesn't match any known provider.
 
     Examples:
         >>> detect_provider("gpt-4o-mini")
         'openai'
         >>> detect_provider("claude-3-haiku")
         'anthropic'
-        >>> detect_provider("hermes3:8b")
-        'ollama'
     """
     model_lower = model.lower()
 
@@ -28,5 +29,8 @@ def detect_provider(model: str) -> str:
     if any(m in model_lower for m in ["claude", "haiku", "sonnet", "opus"]):
         return "anthropic"
 
-    # Default to ollama for local models
-    return "ollama"
+    raise ValueError(
+        f"Unknown model: {model}. "
+        "Model name must contain a known provider pattern. "
+        "Supported: OpenAI (gpt-*, o1-*), Anthropic (claude*, haiku, sonnet, opus)"
+    )

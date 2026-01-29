@@ -15,7 +15,6 @@ RUN pip install --no-cache-dir .
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
-ENV OLLAMA_URL=http://ollama:11434
 
 # Expose API port
 EXPOSE 8100
