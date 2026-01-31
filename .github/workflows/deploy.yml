@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - stage
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    if: github.ref == 'refs/heads/stage'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to staging server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/tg/dialog-gen && git pull origin stage
+            cd /opt/tg/tg-deploy
+            docker compose build dialog-gen --no-cache
+            docker compose up -d dialog-gen
+            sleep 5
+            echo "=== Container Status ==="
+            docker compose ps dialog-gen
+            echo "=== Recent Logs ==="
+            docker compose logs dialog-gen --tail=20
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /opt/tg/dialog-gen && git pull origin main
+            cd /opt/tg/tg-deploy
+            docker compose build dialog-gen --no-cache
+            docker compose up -d dialog-gen
+            sleep 5
+            docker compose ps dialog-gen
+            docker compose logs dialog-gen --tail=20
