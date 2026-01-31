@@ -139,7 +139,7 @@ async def fetch_dialogs_from_channel(client: TelegramClient, channel: str, limit
 
 async def main():
     # Find first profile with session file and load credentials
-    profiles_dir = Path(__file__).parent.parent.parent / "tg-bot" / "profiles"
+    profiles_dir = Path(__file__).parent.parent.parent / "ca-bot" / "profiles"
 
     session_file = None
     profile_json = None

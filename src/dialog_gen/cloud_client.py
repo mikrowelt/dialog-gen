@@ -1,8 +1,8 @@
 """
-Cloud LLM client for OpenAI and Anthropic APIs.
+Cloud LLM client for OpenRouter API.
 
-Provides a unified interface for cloud-based language models as an
-alternative to local Ollama models.
+Provides a unified interface for cloud-based language models
+via OpenRouter.
 """
 
 import httpx
@@ -10,71 +10,37 @@ from typing import Optional
 
 
 class CloudClient:
-    """Client for cloud LLM APIs (OpenAI, Anthropic).
-
-    Supports OpenAI and Anthropic APIs with a unified interface
-    that matches the OllamaClient for easy swapping.
+    """Client for OpenRouter cloud LLM API.
 
     Attributes:
-        openai_api_key: API key for OpenAI.
-        anthropic_api_key: API key for Anthropic.
-        openai_base_url: OpenAI API base URL.
-        anthropic_base_url: Anthropic API base URL.
+        openrouter_api_key: API key for OpenRouter.
+        openrouter_base_url: OpenRouter API base URL.
         timeout: Request timeout in seconds.
 
     Example:
-        >>> client = CloudClient(openai_api_key="sk-...")
+        >>> client = CloudClient(openrouter_api_key="sk-or-...")
         >>> response = await client.generate(
-        ...     model="gpt-4o-mini",
+        ...     model="anthropic/claude-3-haiku-20240307",
         ...     prompt="Write a greeting",
-        ...     provider="openai"
         ... )
     """
 
     def __init__(
         self,
-        openai_api_key: Optional[str] = None,
-        anthropic_api_key: Optional[str] = None,
-        openai_base_url: str = "https://api.openai.com/v1",
-        anthropic_base_url: str = "https://api.anthropic.com",
+        openrouter_api_key: Optional[str] = None,
+        openrouter_base_url: str = "https://openrouter.ai/api/v1",
         timeout: float = 120.0
     ):
         """Initialize cloud client.
 
         Args:
-            openai_api_key: OpenAI API key.
-            anthropic_api_key: Anthropic API key.
-            openai_base_url: OpenAI API base URL.
-            anthropic_base_url: Anthropic API base URL.
+            openrouter_api_key: OpenRouter API key.
+            openrouter_base_url: OpenRouter API base URL.
             timeout: Request timeout in seconds.
         """
-        self.openai_api_key = openai_api_key
-        self.anthropic_api_key = anthropic_api_key
-        self.openai_base_url = openai_base_url.rstrip("/")
-        self.anthropic_base_url = anthropic_base_url.rstrip("/")
+        self.openrouter_api_key = openrouter_api_key
+        self.openrouter_base_url = openrouter_base_url.rstrip("/")
         self.timeout = timeout
-
-    def _detect_provider(self, model: str) -> str:
-        """Detect provider from model name.
-
-        Args:
-            model: Model name.
-
-        Returns:
-            Provider name: 'openai', 'anthropic', or 'ollama'.
-        """
-        model_lower = model.lower()
-
-        # OpenAI models
-        if any(m in model_lower for m in ["gpt-", "o1-", "chatgpt", "davinci", "text-"]):
-            return "openai"
-
-        # Anthropic models
-        if any(m in model_lower for m in ["claude", "haiku", "sonnet", "opus"]):
-            return "anthropic"
-
-        # Default to ollama for local models
-        return "ollama"
 
     async def generate(
         self,
@@ -86,38 +52,29 @@ class CloudClient:
         max_tokens: int = 2048,
         provider: Optional[str] = None
     ) -> str:
-        """Generate text using cloud LLM.
+        """Generate text using OpenRouter.
 
         Args:
-            model: Model name.
+            model: Model name (e.g., 'anthropic/claude-3-haiku-20240307').
             prompt: User prompt.
             system: System prompt.
             temperature: Sampling temperature.
             top_p: Nucleus sampling parameter.
             max_tokens: Maximum tokens to generate.
-            provider: Force provider ('openai' or 'anthropic').
+            provider: Ignored, kept for backward compatibility.
 
         Returns:
             Generated text.
 
         Raises:
-            ValueError: If API key not configured for provider.
+            ValueError: If API key not configured.
             httpx.HTTPStatusError: On API errors.
         """
-        provider = provider or self._detect_provider(model)
+        return await self._generate_openrouter(
+            model, prompt, system, temperature, top_p, max_tokens
+        )
 
-        if provider == "openai":
-            return await self._generate_openai(
-                model, prompt, system, temperature, top_p, max_tokens
-            )
-        elif provider == "anthropic":
-            return await self._generate_anthropic(
-                model, prompt, system, temperature, top_p, max_tokens
-            )
-        else:
-            raise ValueError(f"Unknown provider: {provider}")
-
-    async def _generate_openai(
+    async def _generate_openrouter(
         self,
         model: str,
         prompt: str,
@@ -126,10 +83,10 @@ class CloudClient:
         top_p: float,
         max_tokens: int
     ) -> str:
-        """Generate using OpenAI API.
+        """Generate using OpenRouter API.
 
         Args:
-            model: Model name (e.g., 'gpt-4o-mini').
+            model: Model name (e.g., 'anthropic/claude-3-haiku-20240307').
             prompt: User prompt.
             system: System prompt.
             temperature: Temperature.
@@ -139,12 +96,25 @@ class CloudClient:
         Returns:
             Generated text.
         """
-        if not self.openai_api_key:
+        if not self.openrouter_api_key:
             raise ValueError(
-                "OpenAI API key not configured. "
-                "Set DIALOG_GEN_OPENAI_API_KEY environment variable or "
-                "configure via 'dialog-gen config set cloud.openai_api_key <key>'"
+                "OpenRouter API key not configured. "
+                "Set DIALOG_GEN_OPENROUTER_API_KEY environment variable or "
+                "configure via 'dialog-gen config set cloud.openrouter_api_key <key>'"
             )
+
+        # Auto-prefix bare Claude model names with 'anthropic/'
+        if not "/" in model:
+            if model.startswith("claude") or model in ("haiku", "sonnet", "opus"):
+                # Normalize short aliases
+                if model == "haiku":
+                    model = "anthropic/claude-3-haiku-20240307"
+                elif model == "sonnet":
+                    model = "anthropic/claude-sonnet-4-20250514"
+                elif model == "opus":
+                    model = "anthropic/claude-opus-4-20250514"
+                else:
+                    model = f"anthropic/{model}"
 
         messages = []
         if system:
@@ -153,17 +123,19 @@ class CloudClient:
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.post(
-                f"{self.openai_base_url}/chat/completions",
+                f"{self.openrouter_base_url}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {self.openai_api_key}",
-                    "Content-Type": "application/json"
+                    "Authorization": f"Bearer {self.openrouter_api_key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://github.com/mikrowelt/dialog-gen",
+                    "X-Title": "dialog-gen",
                 },
                 json={
                     "model": model,
                     "messages": messages,
                     "temperature": temperature,
                     "top_p": top_p,
-                    "max_tokens": max_tokens
+                    "max_tokens": max_tokens,
                 }
             )
             response.raise_for_status()
@@ -171,111 +143,19 @@ class CloudClient:
 
         return data["choices"][0]["message"]["content"]
 
-    async def _generate_anthropic(
-        self,
-        model: str,
-        prompt: str,
-        system: Optional[str],
-        temperature: float,
-        top_p: float,
-        max_tokens: int
-    ) -> str:
-        """Generate using Anthropic API.
-
-        Args:
-            model: Model name (e.g., 'claude-3-haiku-20240307').
-            prompt: User prompt.
-            system: System prompt.
-            temperature: Temperature.
-            top_p: Top-p sampling.
-            max_tokens: Max tokens.
-
-        Returns:
-            Generated text.
-        """
-        if not self.anthropic_api_key:
-            raise ValueError(
-                "Anthropic API key not configured. "
-                "Set DIALOG_GEN_ANTHROPIC_API_KEY environment variable or "
-                "configure via 'dialog-gen config set cloud.anthropic_api_key <key>'"
-            )
-
-        # Normalize model names
-        if model == "claude-haiku" or model == "haiku":
-            model = "claude-3-haiku-20240307"
-        elif model == "claude-sonnet" or model == "sonnet":
-            model = "claude-sonnet-4-20250514"
-        elif model == "claude-opus" or model == "opus":
-            model = "claude-opus-4-20250514"
-
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            payload = {
-                "model": model,
-                "max_tokens": max_tokens,
-                "messages": [{"role": "user", "content": prompt}]
-            }
-
-            if system:
-                payload["system"] = system
-
-            # Note: Anthropic doesn't use top_p exactly like OpenAI
-            # Using temperature only for simplicity
-            if temperature != 1.0:
-                payload["temperature"] = temperature
-
-            response = await client.post(
-                f"{self.anthropic_base_url}/v1/messages",
-                headers={
-                    "x-api-key": self.anthropic_api_key,
-                    "anthropic-version": "2023-06-01",
-                    "Content-Type": "application/json"
-                },
-                json=payload
-            )
-            response.raise_for_status()
-            data = response.json()
-
-        return data["content"][0]["text"]
-
-    async def list_models(self, provider: str = "openai") -> list[str]:
-        """List available models.
-
-        Args:
-            provider: Provider to list models for.
+    async def list_models(self) -> list[str]:
+        """List available models via OpenRouter.
 
         Returns:
             List of model names.
         """
-        if provider == "openai":
-            if not self.openai_api_key:
-                return []
-
-            async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.get(
-                    f"{self.openai_base_url}/models",
-                    headers={"Authorization": f"Bearer {self.openai_api_key}"}
-                )
-                if response.status_code != 200:
-                    return []
-                data = response.json()
-
-            # Filter to chat models
-            return sorted([
-                m["id"] for m in data.get("data", [])
-                if any(x in m["id"] for x in ["gpt-", "o1-"])
-            ])
-
-        elif provider == "anthropic":
-            # Anthropic doesn't have a models endpoint, return known models
-            return [
-                "claude-3-haiku-20240307",
-                "claude-3-5-haiku-20241022",
-                "claude-3-5-sonnet-20241022",
-                "claude-sonnet-4-20250514",
-                "claude-opus-4-20250514"
-            ]
-
-        return []
+        return [
+            "anthropic/claude-3-haiku-20240307",
+            "anthropic/claude-3-5-haiku-20241022",
+            "anthropic/claude-3-5-sonnet-20241022",
+            "anthropic/claude-sonnet-4-20250514",
+            "anthropic/claude-opus-4-20250514",
+        ]
 
 
 # Singleton instance will be created after settings are loaded
@@ -293,10 +173,8 @@ def get_cloud_client() -> CloudClient:
     if cloud_client is None:
         from .settings import settings
         cloud_client = CloudClient(
-            openai_api_key=settings.cloud.openai_api_key,
-            anthropic_api_key=settings.cloud.anthropic_api_key,
-            openai_base_url=settings.cloud.openai_base_url,
-            anthropic_base_url=settings.cloud.anthropic_base_url
+            openrouter_api_key=settings.cloud.openrouter_api_key,
+            openrouter_base_url=settings.cloud.openrouter_base_url,
         )
 
     return cloud_client

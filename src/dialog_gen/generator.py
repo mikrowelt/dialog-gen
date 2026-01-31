@@ -2,7 +2,7 @@
 Dialog generation engine.
 
 Generates natural Telegram-style conversations with brand mentions
-using local LLMs via Ollama or cloud providers (OpenAI, Anthropic).
+using cloud LLMs via OpenRouter.
 """
 
 import re
@@ -11,7 +11,6 @@ import random
 import json
 from typing import Optional
 
-from .ollama_client import ollama
 from .cloud_client import get_cloud_client
 from .settings import settings
 from .models import (
@@ -21,19 +20,16 @@ from .models import (
 
 
 class DialogGenerator:
-    """Generates natural dialogs using LLMs (local or cloud).
+    """Generates natural dialogs using LLMs via OpenRouter.
 
     The generator creates realistic chat conversations that naturally
     incorporate brand mentions based on the provided context and settings.
 
-    Supports both local models via Ollama and cloud providers (OpenAI, Anthropic).
-
     Attributes:
         model: The LLM model to use for generation.
-        provider: Provider to use ('ollama', 'openai', 'anthropic', or 'auto').
+        provider: Always 'openrouter'.
 
     Example:
-        >>> # Using local Ollama
         >>> generator = DialogGenerator()
         >>> request = GenerateRequest(
         ...     brand=Brand(name="FoodBox", what_is_it="food delivery"),
@@ -42,48 +38,17 @@ class DialogGenerator:
         >>> result = await generator.generate_dialog(request)
         >>> for msg in result.messages:
         ...     print(f"{msg.role}: {msg.content}")
-
-        >>> # Using OpenAI
-        >>> generator = DialogGenerator(model="gpt-4o-mini", provider="openai")
     """
 
     def __init__(self, model: Optional[str] = None, provider: Optional[str] = None):
         """Initialize the generator.
 
         Args:
-            model: LLM model name. Defaults based on provider.
-            provider: Provider to use ('ollama', 'openai', 'anthropic', 'auto').
-                     'auto' detects from model name. Defaults to settings.cloud.provider.
+            model: LLM model name. Defaults to settings.cloud.openrouter_model.
+            provider: Ignored, always uses OpenRouter.
         """
-        self.provider = provider or settings.cloud.provider
-
-        # Set default model based on provider
-        if model:
-            self.model = model
-        elif self.provider == "openai":
-            self.model = settings.cloud.openai_model
-        elif self.provider == "anthropic":
-            self.model = settings.cloud.anthropic_model
-        else:
-            self.model = settings.models.default
-
-    def _detect_provider(self, model: str) -> str:
-        """Detect provider from model name.
-
-        Args:
-            model: Model name.
-
-        Returns:
-            Provider name.
-        """
-        model_lower = model.lower()
-
-        if any(m in model_lower for m in ["gpt-", "o1-", "chatgpt", "davinci"]):
-            return "openai"
-        if any(m in model_lower for m in ["claude", "haiku", "sonnet", "opus"]):
-            return "anthropic"
-
-        return "ollama"
+        self.provider = "openrouter"
+        self.model = model or settings.cloud.openrouter_model
 
     def _build_system_prompt(self, subject: Subject, campaign: Campaign, language: str) -> str:
         """Build system prompt from subject, campaign, and language settings.
@@ -363,45 +328,27 @@ IMPORTANT:
         temperature: float,
         provider: Optional[str] = None
     ) -> str:
-        """Call LLM via appropriate provider.
+        """Call LLM via OpenRouter.
 
         Args:
             model: Model name.
             prompt: User prompt.
             system: System prompt.
             temperature: Temperature setting.
-            provider: Provider override.
+            provider: Ignored, always uses OpenRouter.
 
         Returns:
             Generated text.
         """
-        provider = provider or self.provider
-
-        # Auto-detect provider from model name
-        if provider == "auto":
-            provider = self._detect_provider(model)
-
-        if provider in ("openai", "anthropic"):
-            cloud = get_cloud_client()
-            return await cloud.generate(
-                model=model,
-                prompt=prompt,
-                system=system,
-                temperature=temperature,
-                top_p=settings.top_p,
-                max_tokens=settings.max_tokens,
-                provider=provider
-            )
-        else:
-            # Default to Ollama
-            return await ollama.generate(
-                model=model,
-                prompt=prompt,
-                system=system,
-                temperature=temperature,
-                top_p=settings.top_p,
-                max_tokens=settings.max_tokens
-            )
+        cloud = get_cloud_client()
+        return await cloud.generate(
+            model=model,
+            prompt=prompt,
+            system=system,
+            temperature=temperature,
+            top_p=settings.top_p,
+            max_tokens=settings.max_tokens,
+        )
 
     async def generate_dialog(self, request: GenerateRequest) -> GeneratedDialog:
         """Generate a complete dialog.

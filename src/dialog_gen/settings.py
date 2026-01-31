@@ -120,32 +120,20 @@ class PromptSettings(BaseModel):
 class CloudSettings(BaseModel):
     """Cloud LLM provider settings."""
     provider: str = Field(
-        default="ollama",
-        description="Default provider: ollama, openai, anthropic"
+        default="openrouter",
+        description="AI provider (openrouter)"
     )
-    openai_api_key: Optional[str] = Field(
+    openrouter_api_key: Optional[str] = Field(
         default=None,
-        description="OpenAI API key"
+        description="OpenRouter API key"
     )
-    anthropic_api_key: Optional[str] = Field(
-        default=None,
-        description="Anthropic API key"
+    openrouter_base_url: str = Field(
+        default="https://openrouter.ai/api/v1",
+        description="OpenRouter API base URL"
     )
-    openai_base_url: str = Field(
-        default="https://api.openai.com/v1",
-        description="OpenAI API base URL"
-    )
-    anthropic_base_url: str = Field(
-        default="https://api.anthropic.com",
-        description="Anthropic API base URL"
-    )
-    openai_model: str = Field(
-        default="gpt-4o-mini",
-        description="Default OpenAI model"
-    )
-    anthropic_model: str = Field(
-        default="claude-3-haiku-20240307",
-        description="Default Anthropic model"
+    openrouter_model: str = Field(
+        default="anthropic/claude-3-haiku-20240307",
+        description="Default OpenRouter model"
     )
 
 
@@ -153,7 +141,6 @@ class ApiSettings(BaseModel):
     """API server settings."""
     host: str = Field(default="0.0.0.0", description="API bind host")
     port: int = Field(default=8100, ge=1, le=65535, description="API port")
-    ollama_url: str = Field(default="http://localhost:11434", description="Ollama API URL")
 
 
 class BrandDefaults(BaseModel):
@@ -196,11 +183,6 @@ class Settings(BaseModel):
         """Backward compatible access to max_tokens."""
         return self.generation.max_tokens
 
-    @property
-    def ollama_base_url(self) -> str:
-        """Backward compatible access to Ollama URL."""
-        return self.api.ollama_url
-
     def save(self) -> None:
         """Save settings to config file."""
         CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -226,14 +208,11 @@ class Settings(BaseModel):
             "DIALOG_GEN_TEMPERATURE": ("generation", "temperature"),
             "DIALOG_GEN_MAX_TOKENS": ("generation", "max_tokens"),
             "DIALOG_GEN_LANGUAGE": ("style", "language"),
-            "DIALOG_GEN_OLLAMA_URL": ("api", "ollama_url"),
             "DIALOG_GEN_API_HOST": ("api", "host"),
             "DIALOG_GEN_API_PORT": ("api", "port"),
             "DIALOG_GEN_PROVIDER": ("cloud", "provider"),
-            "DIALOG_GEN_OPENAI_API_KEY": ("cloud", "openai_api_key"),
-            "DIALOG_GEN_ANTHROPIC_API_KEY": ("cloud", "anthropic_api_key"),
-            "DIALOG_GEN_OPENAI_MODEL": ("cloud", "openai_model"),
-            "DIALOG_GEN_ANTHROPIC_MODEL": ("cloud", "anthropic_model"),
+            "DIALOG_GEN_OPENROUTER_API_KEY": ("cloud", "openrouter_api_key"),
+            "DIALOG_GEN_OPENROUTER_MODEL": ("cloud", "openrouter_model"),
         }
 
         for env_var, (section, key) in env_mappings.items():

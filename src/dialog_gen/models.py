@@ -460,7 +460,7 @@ class SingleResponseRequest(_SubjectRequestMixin, BaseModel):
 class ModelInfo(BaseModel):
     """Information about an available model.
 
-    Represents metadata about an installed Ollama model.
+    Represents metadata about an available model.
 
     Attributes:
         name: Model name/tag.
