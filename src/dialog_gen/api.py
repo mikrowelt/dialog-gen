@@ -5,6 +5,8 @@ Provides REST API endpoints for generating dialogs,
 comparing models, and managing the generation process.
 """
 
+import logging
+import os
 import time
 from contextlib import asynccontextmanager
 
@@ -23,6 +25,12 @@ from .generator import DialogGenerator
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage application lifecycle."""
+    log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+    logging.basicConfig(
+        level=getattr(logging, log_level, logging.INFO),
+        format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+    )
+    logging.getLogger("dialog_gen").setLevel(getattr(logging, log_level, logging.INFO))
     yield
 
 

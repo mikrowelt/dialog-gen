@@ -5,6 +5,7 @@ Generates natural Telegram-style conversations with brand mentions
 using cloud LLMs via OpenRouter.
 """
 
+import logging
 import re
 import time
 import random
@@ -12,6 +13,8 @@ import json
 from typing import Optional
 
 from .cloud_client import get_cloud_client
+
+logger = logging.getLogger(__name__)
 from .settings import settings
 from .models import (
     Subject, Brand, Campaign, DialogContext, DialogMessage, GeneratedDialog,
@@ -373,6 +376,13 @@ IMPORTANT:
             request.language
         )
 
+        logger.info(
+            "Generating dialog: model=%s, num_turns=%d, language=%s, temperature=%s, subject=%s",
+            model, request.num_turns, request.language, temperature, request.subject.name
+        )
+        logger.debug("System prompt:\n%s", system_prompt)
+        logger.debug("Generation prompt:\n%s", generation_prompt)
+
         start_time = time.time()
 
         raw_response = await self._call_llm(
@@ -383,7 +393,17 @@ IMPORTANT:
         )
 
         generation_time = int((time.time() - start_time) * 1000)
+
+        logger.info("LLM response received: %dms, %d chars", generation_time, len(raw_response))
+        logger.debug("Raw LLM response:\n%s", raw_response)
+
         messages = self._parse_dialog(raw_response)
+
+        logger.info(
+            "Dialog parsed: %d messages [%s]",
+            len(messages),
+            " | ".join(f"{m.role}: {m.content[:60]}..." if len(m.content) > 60 else f"{m.role}: {m.content}" for m in messages)
+        )
 
         return GeneratedDialog(
             messages=messages,
@@ -392,7 +412,10 @@ IMPORTANT:
                 "provider": self.provider,
                 "temperature": temperature,
                 "generation_time_ms": generation_time,
-                "raw_response_length": len(raw_response)
+                "raw_response_length": len(raw_response),
+                "system_prompt": system_prompt,
+                "generation_prompt": generation_prompt,
+                "raw_response": raw_response,
             }
         )
 
@@ -436,12 +459,21 @@ IMPORTANT:
 
 Напиши только одно сообщение:"""
 
+        logger.info(
+            "Generating single response: model=%s, next_role=%s, context_messages=%d",
+            model, next_role, len(request.context.messages)
+        )
+        logger.debug("System prompt:\n%s", system_prompt)
+        logger.debug("Response prompt:\n%s", prompt)
+
         raw_response = await self._call_llm(
             model=model,
             prompt=prompt,
             system=system_prompt,
             temperature=temperature
         )
+
+        logger.debug("Raw LLM response:\n%s", raw_response)
 
         content = raw_response.strip()
         content = re.sub(r'^(SENDER|RESPONDER|sender|responder|person\d+|PERSON\d+):\s*', '', content)
