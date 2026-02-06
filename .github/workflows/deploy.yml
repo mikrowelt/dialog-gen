@@ -6,6 +6,7 @@ on:
       - main
       - stage
       - dev
+      - test
   workflow_dispatch:
 
 jobs:
@@ -38,6 +39,32 @@ jobs:
             cd /opt/ca
             echo "$GHCR_TOKEN" | docker login ghcr.io -u mikrowelt --password-stdin
             docker pull ghcr.io/mikrowelt/dialog-gen:dev
+            docker compose up -d dialog-gen
+
+            sleep 5
+            echo "=== Container Status ==="
+            docker compose ps dialog-gen
+            echo "=== Recent Logs ==="
+            docker compose logs dialog-gen --tail=20
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+  deploy-test:
+    needs: build-and-push
+    if: github.ref == 'refs/heads/test'
+    runs-on: self-hosted
+    steps:
+      - name: Deploy to test server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.TEST_HOST }}
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: GHCR_TOKEN
+          script: |
+            cd /opt/ca
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u mikrowelt --password-stdin
+            docker pull ghcr.io/mikrowelt/dialog-gen:test
             docker compose up -d dialog-gen
 
             sleep 5
